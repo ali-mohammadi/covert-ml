@@ -1,23 +1,21 @@
-import torch
-
-''' 
+'''
     Model Parameters for Rayleigh 
 '''
-model_parameters = {
-    'n_channel': 8,
-    'k': 4,
-    'ebno': 14,
-    'train_size': 1024 * 8,
-    'test_size': 1024 * 6,
-    'batch_size': 16,
-    'num_epochs': 100,
-    'learning_rate': 1e-3,
-    'channel_type': 'rayleigh',
-    'channel_samples': None,
-    'channel_taps': None,
-    'seed': 13,
-    'device': 'auto'
-}
+# model_parameters = {
+#     'n_channel': 8,
+#     'k': 4,
+#     'ebno': 14,
+#     'train_size': 1024 * 8,
+#     'test_size': 1024 * 6,
+#     'batch_size': 16,
+#     'num_epochs': 100,
+#     'learning_rate': 1e-3,
+#     'channel_type': 'rayleigh',
+#     'channel_samples': None,
+#     'channel_taps': None,
+#     'seed': 13,
+#     'device': 'auto'
+# }
 
 ''' 
     Model parameters for AWGN
@@ -25,7 +23,7 @@ model_parameters = {
 model_parameters = {
     'n_channel': 8,
     'k': 4,
-    'ebno': 7,
+    'ebno': 4,
     'train_size': 1024 * 8,
     'test_size': 1024 * 50,
     'batch_size': 32,

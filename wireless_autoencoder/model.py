@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.utils.data import TensorDataset
 import sys
 
-from parameters import model_parameters
+from wireless_autoencoder.parameters import model_parameters
 
 if model_parameters['device'] == 'auto':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -136,8 +136,7 @@ class Wireless_Autoencoder(nn.Module):
         x = x.view((-1, model_parameters['n_channel'], 2))
         x = torch.view_as_complex(x)
 
-        fading_batch = self.fading[self.batch_number * model_parameters['batch_size']:(self.batch_number * model_parameters[
-            'batch_size']) + model_parameters['batch_size']].to(device)
+        fading_batch = self.fading[self.batch_number * x.size()[0]:(self.batch_number * x.size()[0]) + x.size()[0]].to(device)
         # fading_batch = torch.randn((model_parameters['batch_size'], 1), dtype=torch.cfloat).to(device)
 
 

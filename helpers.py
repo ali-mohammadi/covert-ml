@@ -3,6 +3,7 @@ import numpy as np
 from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from wireless_autoencoder.parameters import model_parameters
 
 if model_parameters['device'] == 'auto':
@@ -17,18 +18,19 @@ def frange(x, y, jump):
         x += jump
 
 
+'''
+    :param:
+        fd      : Doppler frequency
+        Ts      : sampling period
+        Ns      : number of samples
+        t0      : initial time
+        E0      : channel power
+        phi_N   : initial phase of the maximum doppler frequency sinusoid
+    
+    :return: 
+        h       : complex fading vector
+'''
 def jakes_flat(fd=926, Ts=1e-6, Ns=1, t0=0, E0=np.sqrt(1), phi_N=0):
-    ''''
-    Inputs:
-    fd      : Doppler frequency
-    Ts      : sampling period
-    Ns      : number of samples
-    t0      : initial time
-    E0      : channel power
-    phi_N   : initial phase of the maximum doppler frequency sinusoid
-    Outputs:
-    h       : complex fading vector
-    '''
     N0 = 8
     N = 4 * N0 + 2
     wd = 2 * np.pi * fd
@@ -94,8 +96,9 @@ def bler_chart(model, test_ds, manual_seed=None):
     plt.ylabel('Block Error Rate')
     plt.grid()
     plt.legend(loc="upper right", ncol=1)
-    plt.savefig("results/autoencoder_bler_" + model_parameters['channel_type'] + ".png")
+    plt.savefig("results/autoencoder_" + model_parameters['n_channel'] + "_" + model_parameters['k'] + "__bler__" + model_parameters['channel_type'] + ".png")
     plt.show()
+
 
 def losses_chart(losses):
     plt.plot(list(range(1, len(losses) + 1)), losses,
@@ -106,3 +109,49 @@ def losses_chart(losses):
     plt.show()
 
 
+def accuracies_chart(accs):
+    # plt.figure(figsize=(6, 6))
+    fig, ax = plt.subplots()
+    plots = ['model', 'bob', 'willie']
+    # plots = ['bob', 'willie']
+    for plot in plots:
+        plt.plot(range(0, len(accs[plot])), accs[plot], label=str(plot).capitalize() + " Accuracy")
+    plt.title("Models Accuracies")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.legend(loc="center right")
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: round(x * 10)))
+    plt.show()
+
+    # plt.figure()
+    # plt.plot(range(0, len(results['willie_losses'])), results['willie_losses'], label="Willie Losses")
+    # plt.xlabel("Epoch")
+    # plt.ylabel("Losses")
+    # plt.legend(loc="lower right")
+    # plt.show()
+
+
+def accuracy(pred, label):
+    return torch.sum(pred == label).item() / len(pred)
+
+
+def discriminator_accuracy(fake_preds, real_preds):
+    fake_preds = fake_preds.cpu()
+    real_preds = real_preds.cpu()
+    fake_preds[fake_preds > 0.5] = 1
+    fake_preds[fake_preds <= 0.5] = 0
+    real_preds[real_preds > 0.5] = 1
+    real_preds[real_preds <= 0.5] = 0
+    discriminator_fake_accuracy = accuracy(fake_preds, torch.zeros(len(fake_preds), 1))
+    discriminator_real_accuracy = accuracy(real_preds, torch.ones(len(real_preds), 1))
+    return (discriminator_fake_accuracy + discriminator_real_accuracy) / 2
+
+
+def classifier_accuracy(pred, label):
+    _, preds = torch.max(pred, dim=1)
+    return accuracy(preds, label)
+
+
+def reset_grads(*args):
+    for arg in args:
+        arg.zero_grad()
