@@ -94,7 +94,7 @@ def bler_chart(model, test_ds, manual_seed=None):
     plt.ylabel('Block Error Rate')
     plt.grid()
     plt.legend(loc="upper right", ncol=1)
-    plt.savefig("resutls/autoencoder_bler_" + model_parameters['channel_type'] + ".png")
+    plt.savefig("results/autoencoder_bler_" + model_parameters['channel_type'] + ".png")
     plt.show()
 
 def losses_chart(losses):
