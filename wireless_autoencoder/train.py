@@ -20,10 +20,14 @@ def train(model, dl, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam):
         for i, (x, y) in enumerate(dl):
             x = x.to(device)
             y = y.to(device)
-
-            if (model_parameters['channel_samples'] != None):
+            '''
+                When channel samples parameter is set, same signal passes through different channel realization.
+            '''
+            if model_parameters['channel_samples'] is not None:
                 loss = 0
                 for i in range(model_parameters['channel_samples']):
+                    fading_idx = torch.randperm(model.fading.shape[0])
+                    model.fading = model.fading[fading_idx]
                     output = model(x)
                     loss += loss_fn(output, y)
                 loss = loss / model_parameters['channel_samples']
@@ -55,19 +59,17 @@ def run_train(seed=model_parameters['seed']):
     model = Wireless_Autoencoder(model_parameters['m'], model_parameters['n_channel']).to(device)
 
     model.train()
+
     model.fading = torch.randn((model_parameters['train_size'], 1), dtype=torch.cfloat).to(device)
-    # model.fading = jakes_flat(Ns=(model_parameters['train_size']))
+    # model.fading = jakes_flat(Ns=(model_parameters['train_size'])).to(device)
 
     losses = train(model, train_dl, model_parameters['num_epochs'], lr=model_parameters['learning_rate'], loss_fn=F.cross_entropy,
                    optim_fn=torch.optim.Adam)
-    if model_parameters['channel_type'] == 'rayleigh':
-        losses += train(model, train_dl, model_parameters['num_epochs'], lr=model_parameters['learning_rate'] * 1e-1, loss_fn=F.cross_entropy, optim_fn=torch.optim.Adam)
-        losses += train(model, train_dl, model_parameters['num_epochs'], lr=model_parameters['learning_rate'] * 1e-2, loss_fn=F.cross_entropy, optim_fn=torch.optim.Adam)
 
     model.save(train_ds, test_ds, save_signals=True)
 
-    model_parameters['_batch_size'] = model_parameters['batch_size']
     model.eval()
+    model_parameters['_batch_size'] = model_parameters['batch_size']
     model.batch_number = 0
     model_parameters['batch_size'] = model_parameters['test_size']
     bler_chart(model, test_ds, manual_seed=seed)
@@ -77,27 +79,21 @@ def run_train(seed=model_parameters['seed']):
 
 def run_eval(seed=model_parameters['seed']):
     torch.manual_seed(seed)
-    model = Wireless_Autoencoder(model_parameters['m'], model_parameters['n_channel'])
+    print('Device: ', 'CPU' if device == 'cpu' else 'GPU')
+    model = Wireless_Autoencoder(model_parameters['m'], model_parameters['n_channel']).to(device)
     model.eval()
     model.load()
-    model.fading = torch.randn((model_parameters['test_size'], 1), dtype=torch.cfloat)
-    # model.fading = jakes_flat(Ns=(model_parameters['train_size']))
+    model.fading = torch.randn((model_parameters['test_size'], 1), dtype=torch.cfloat).to(device)
+    # model.fading = jakes_flat(Ns=(model_parameters['train_size'])).to(device)
     model.batch_number = 0
     model_parameters['batch_size'] = model_parameters['test_size']
-    test_ds = torch.load('../data/' + model_parameters['channel_type'] + '/test_' + str(model_parameters['n_channel']) + '-' + str(model_parameters['k']) + '.pt')
+    test_ds = torch.load('../data/' + model_parameters['channel_type'] + '/test.pt')
     bler_chart(model, test_ds)
 
 
 '''
     Run training or evaluation
 '''
-run_train()
-# run_eval()
 
-'''
-    Run train
-'''
-# fading = torch.randn((model_parameters['test_size'], 1), dtype=torch.cfloat).to(device)
-# model_parameters['batch_size'] = model_parameters['test_size']
-# manual_seed = model_parameters['seed']
-# run_eval()
+run_train()
+run_eval()

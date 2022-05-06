@@ -21,19 +21,16 @@ def initialize():
     AE.load()
 
     autoencoder_ds = torch.load(
-        '../data/' + covert_parameters['channel_type'] + '/train_signals_' + str(
-            model_parameters['n_channel']) + '-' + str(model_parameters['k']) + '.pt')
+        '../data/' + covert_parameters['channel_type'] + '/train_signals.pt')
     x = autoencoder_ds[:][0]
     y = autoencoder_ds[:][1]
 
     autoencoder_tds = torch.load(
-        '../data/' + covert_parameters['channel_type'] + '/test_signals_' + str(
-            model_parameters['n_channel']) + '-' + str(model_parameters['k']) + '.pt')
+        '../data/' + covert_parameters['channel_type'] + '/test_signals.pt')
     test_x = autoencoder_tds[:][0]
     test_y = autoencoder_tds[:][1]
 
     if covert_parameters['low_rate_multiplier'] is not None:
-        covert_parameters['n_channel'] *= covert_parameters['low_rate_multiplier']
         x = x.reshape(-1, covert_parameters['n_channel'] * 2)
         _y = y.reshape(-1, covert_parameters['low_rate_multiplier'])
         test_x = test_x.reshape(-1, covert_parameters['n_channel'] * 2)
@@ -78,11 +75,13 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
 
     accs = {'willie': [], 'bob': [], 'model': []}
     losses = {'willie': [], 'bob': [], 'alice': []}
+
+    '''
+        Overriding batch size (Batch training is not supported yet).
+    '''
+    covert_parameters['batch_size'] = x.size()[0]
+
     for epoch in range(num_epochs):
-        '''
-            Overriding batch size (Batch training is not supported yet).
-        '''
-        covert_parameters['batch_size'] = x.size()[0]
         '''
             Randomly switching noise power
         '''
@@ -102,8 +101,8 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
             z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
             alice_output = A(z, m)
 
-            covert_labels = torch.zeros(covert_parameters['batch_size'], 1).to(device)
             normal_labels = torch.ones(covert_parameters['batch_size'], 1).to(device)
+            covert_labels = torch.zeros(covert_parameters['batch_size'], 1).to(device)
 
             willie_output = W(AE.channel(x, covert_parameters['channel_type']))
             willie_normal_loss = w_criterion(willie_output, normal_labels)
@@ -164,8 +163,6 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
                     W(AE.channel(alice_output_test + test_x, covert_parameters['channel_type'])),
                     W(AE.channel(test_x, covert_parameters['channel_type'])))
 
-                # if willie_acc > 0.8:
-                #     willie_lambda = 3
 
                 bob_acc = classifier_accuracy(
                     B(AE.channel(alice_output_test + test_x, covert_parameters['channel_type'])),
@@ -208,9 +205,9 @@ def run_train(seed=covert_parameters['seed']):
     ae_lambda, bob_lambda, willie_lambda = 1, 1.5, 1.25
     accs, losses = train(models, datasets, lambdas=(ae_lambda, bob_lambda, willie_lambda))
 
-    torch.save(A.state_dict(), '../models/' + covert_parameters['channel_type'] + '/covert_alice_' + str(covert_parameters['n_channel']) + '_' + str(covert_parameters['k']) + '.pth')
-    torch.save(B.state_dict(), '../models/' + covert_parameters['channel_type'] + '/covert_bob_' + str(covert_parameters['n_channel']) + '_' + str(covert_parameters['k']) + '.pth')
-    torch.save(E.state_dict(), '../models/' + covert_parameters['channel_type'] + '/covert_willie_' + str(covert_parameters['n_channel']) + '_' + str(covert_parameters['k']) + '.pth')
+    torch.save(A.state_dict(), '../models/' + covert_parameters['channel_type'] + '/wireless_covert_alice.pt')
+    torch.save(B.state_dict(), '../models/' + covert_parameters['channel_type'] + '/wireless_covert_bob.pt')
+    torch.save(E.state_dict(), '../models/' + covert_parameters['channel_type'] + '/wireless_covert_willie.pt')
 
     accuracies_chart(accs)
 
@@ -234,9 +231,9 @@ def evaluate(ebno):
     AE.fading = fading[fading_idx].to(device)
     # AE.fading = fading
 
-    A.load_state_dict(torch.load('../models/' + covert_parameters['channel_type'] + '/covert_alice_' + str(covert_parameters['n_channel']) + '_' + str(covert_parameters['k']) + '.pth'))
-    B.load_state_dict(torch.load('../models/' + covert_parameters['channel_type'] + '/covert_bob_' + str(covert_parameters['n_channel']) + '_' + str(covert_parameters['k']) + '.pth'))
-    W.load_state_dict(torch.load('../models/' + covert_parameters['channel_type'] + '/covert_willie_' + str(covert_parameters['n_channel']) + '_' + str(covert_parameters['k']) + '.pth'))
+    A.load_state_dict(torch.load('../models/' + covert_parameters['channel_type'] + '/wireless_covert_alice.pt'))
+    B.load_state_dict(torch.load('../models/' + covert_parameters['channel_type'] + '/wireless_covert_bob.pt'))
+    W.load_state_dict(torch.load('../models/' + covert_parameters['channel_type'] + '/wireless_covert_willie.pt'))
 
     test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
 
@@ -263,7 +260,7 @@ def run_eval():
     if covert_parameters['channel_type'] == 'rayleigh':
         ebno_range = list(frange(0, 21, 2))
     else:
-        ebno_range = list(frange(-4, 9, 1.5))
+        ebno_range = list(frange(-4, 8, 0.5))
 
     accs = {'model': [], 'bob': [], 'willie': []}
 
@@ -314,18 +311,22 @@ def run_eval():
         plt.legend(loc="upper right", ncol=1)
 
         if x == 'model':
-            plt.savefig("results/autoencoder_" + str(model_parameters['n_channel']) + "_" + str(model_parameters['k']) + "__bler__" + covert_parameters['channel_type'] + ".png")
+            plt.savefig("results/autoencoder_bler_" + covert_parameters['channel_type'] + ".png")
         elif x == 'bob':
             plt.savefig(
-                "results/bob_" + str(covert_parameters['n_channel']) + "_" + str(covert_parameters['k']) + "__bler__" +
+                "results/bob_bler_" +
                 covert_parameters['channel_type'] + ".png")
         else:
             plt.savefig(
-                "results/willie_" + str(model_parameters['n_channel']) + "_" + str(model_parameters['k']) + "__accuracy__" +
+                "results/willie_accuracy_" +
                 covert_parameters['channel_type'] + ".png")
 
         plt.show()
 
 
+'''
+    Run training or evaluation
+'''
+# for i in range(0, 100):
 run_train()
 run_eval()

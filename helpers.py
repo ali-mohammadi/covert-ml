@@ -90,13 +90,13 @@ def bler_chart(model, test_ds, manual_seed=None):
             print('SNR: {}, BER: {:.8f}'.format(ebno_range[j], ber[j]))
 
     plt.plot(ebno_range, ber, 'bo',
-             label="Autoencoder(" + str(model_parameters['n_channel']) + "," + str(model_parameters['k']) + ")" + ("  " + str(manual_seed))) if (manual_seed != None) else ""
+             label="Autoencoder(" + str(model_parameters['n_channel']) + "," + str(model_parameters['k']) + ")" + ((" - seed: " + str(manual_seed)) if (manual_seed is not None) else ""))
     plt.yscale('log')
     plt.xlabel('Eb/N0')
     plt.ylabel('Block Error Rate')
     plt.grid()
     plt.legend(loc="upper right", ncol=1)
-    plt.savefig("results/autoencoder_" + model_parameters['n_channel'] + "_" + model_parameters['k'] + "__bler__" + model_parameters['channel_type'] + ".png")
+    plt.savefig("results/autoencoder_bler_" + model_parameters['channel_type'] + ".png")
     plt.show()
 
 
