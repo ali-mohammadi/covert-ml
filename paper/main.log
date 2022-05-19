@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.11)  18 MAY 2022 00:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.11)  19 MAY 2022 04:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -454,11 +454,7 @@ Package: setspace 2011/12/19 v6.7a set line spacing
 File: l3backend-pdftex.def 2022-04-20 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count298
 \l__pdf_internal_box=\box56
-) (main.aux
-
-LaTeX Warning: Label `alice_bob_loss' multiply defined.
-
-)
+) (main.aux)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
@@ -549,7 +545,14 @@ Underfull \hbox (badness 10000) in paragraph at lines 5--6
 
  []
 
-[3]) (tex/eval.tex [4]) (tex/conc.tex) (main.bbl [5])
+[3]) (tex/eval.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Underfull \vbox (badness 2213) has occurred while \output is active []
+
+ [4])
+(tex/conc.tex) (main.bbl [5])
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -563,20 +566,15 @@ Before submitting the final camera ready copy, remember to:
 
 
 AED: lastpage setting LastPage
-[6
-
-] (main.aux)
-
-LaTeX Warning: There were multiply-defined labels.
-
+[6] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: A944EE1B407C7D938A66C0DBB7333DDC;2088.
  ) 
 Here is how much of TeX's memory you used:
- 12800 strings out of 478619
- 206944 string characters out of 2853060
- 525751 words of memory out of 3000000
- 30705 multiletter control sequences out of 15000+600000
+ 12805 strings out of 478619
+ 207015 string characters out of 2853060
+ 525884 words of memory out of 3000000
+ 30709 multiletter control sequences out of 15000+600000
  501461 words of font info for 85 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  65i,8n,66p,3931b,474s stack positions out of 10000i,1000n,20000p,200000b,80000s
@@ -585,14 +583,13 @@ Here is how much of TeX's memory you used:
 /public/amsfonts/cm/cmmi7.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfo
 nts/cm/cmr10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.p
 fb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Progr
-am Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Program Files/MiKT
-eX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Program Files/MiKTeX/font
-s/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utm
-bi8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Program 
-Files/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (6 pages, 177334 bytes).
+am Files/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Program File
+s/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX/fonts/type1/
+urw/times/utmbi8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmr8a.pfb
+><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (6 pages, 171689 bytes).
 PDF statistics:
- 216 PDF objects out of 1000 (max. 8388607)
- 52 named destinations out of 1000 (max. 500000)
+ 217 PDF objects out of 1000 (max. 8388607)
+ 53 named destinations out of 1000 (max. 500000)
  105 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -157,4 +157,8 @@ A.~Bahramali, M.~Nasr, A.~Houmansadr, D.~Goeckel, and D.~Towsley, ``Robust
   \emph{Proceedings of the 2021 ACM SIGSAC Conference on Computer and
   Communications Security}, 2021, pp. 126--140.
 
+\bibitem{kingma2014adam}
+D.~P. Kingma and J.~Ba, ``Adam: A method for stochastic optimization,''
+  \emph{arXiv preprint arXiv:1412.6980}, 2014.
+
 \end{thebibliography}
