@@ -33,7 +33,7 @@ class Alice(nn.Module):
             nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
             nn.ReLU(inplace=True),
             nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * covert_parameters['m']),
-            nn.Tanh(),
+            nn.ReLU(inplace=True),
             nn.Linear(covert_parameters['n_channel'] * covert_parameters['m'], covert_parameters['n_channel'] * 2),
             nn.Tanh(),
         )
@@ -41,7 +41,6 @@ class Alice(nn.Module):
     def forward(self, x, m):
         m_one_hot_sparse = torch.sparse.torch.eye(covert_parameters['m']).to(device)
         m_one_hot = m_one_hot_sparse.index_select(dim=0, index=m).to(device)
-
         encoded_signal = self.encode(torch.cat([x, m_one_hot], dim=1).to(device))
 
         '''

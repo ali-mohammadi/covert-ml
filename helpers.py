@@ -5,6 +5,8 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from wireless_autoencoder.parameters import model_parameters
+from channel_parameters import channel_parameters
+plt.rcParams["font.family"] = "Times New Roman"
 
 if model_parameters['device'] == 'auto':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -55,25 +57,32 @@ def jakes_flat(fd=926, Ts=1e-6, Ns=1, t0=0, E0=np.sqrt(1), phi_N=0):
     return torch.unsqueeze(torch.view_as_complex(H.type(torch.float32)), dim=1)
 
 
-def plot_constellation(signals):
+def plot_constellation(data):
     image = plt.figure(figsize=(6, 6))
-    for signal in signals:
-        for i in range(0, model_parameters['n_channel']):
-            plt.scatter(signal[0][i], signal[1][i], marker='x', c="blue")
+    for signals, marker, color, size in data:
+        for signal in signals:
+            signal = signal.cpu().detach().numpy()
+            for i in range(0, model_parameters['n_channel']):
+                plt.scatter(signal[i], signal[i + model_parameters['n_channel']], marker=marker, c=color, s=size)
 
-    image.axes[0].set_xticks(list(range(-4, 5)))
-    image.axes[0].set_yticks(list(range(-4, 5)))
+    image.axes[0].set_xticks(list(frange(-8, 9, 2)))
+    image.axes[0].set_yticks(list(frange(-8, 9, 2)))
 
-    image.axes[0].axhline(0, linestyle='-', color='gray')
-    image.axes[0].axvline(0, linestyle='-', color='gray')
+    plt.xlim([-9, 9])
+    plt.ylim([-9, 9])
+
+    image.axes[0].axhline(0, linestyle='-', color='gray', alpha=0.5)
+    image.axes[0].axvline(0, linestyle='-', color='gray', alpha=0.5)
+
+    return plt
     plt.show()
 
 
 def bler_chart(model, test_ds, manual_seed=None):
-    if model_parameters['channel_type'] == 'rayleigh':
-        ebno_range = list(frange(0, 21, 2))
+    if channel_parameters['channel_type']  == 'rayleigh':
+        ebno_range = list(frange(0, 22, 5))
     else:
-        ebno_range = list(frange(-4, 8, 0.5))
+        ebno_range = list(frange(-4, 5, 1))
     ber = [None] * len(ebno_range)
 
     x, y = test_ds[:][0], test_ds[:][1]
@@ -89,14 +98,25 @@ def bler_chart(model, test_ds, manual_seed=None):
             ber[j] = torch.sum(decoded_signal.detach().cpu() != y).item() / len(decoded_signal)
             print('SNR: {}, BER: {:.8f}'.format(ebno_range[j], ber[j]))
 
-    plt.plot(ebno_range, ber, 'bo',
-             label="Autoencoder(" + str(model_parameters['n_channel']) + "," + str(model_parameters['k']) + ")" + ((" - seed: " + str(manual_seed)) if (manual_seed is not None) else ""))
+
+    print(ber)
+    plt.xlim(ebno_range[0], ebno_range[-1])
+
+    plt.plot(ebno_range, ber, '-ko', clip_on=False,
+             label="Autoencoder (" + str(model_parameters['n_channel']) + "," + str(model_parameters['k']) + ")" + ((" - seed: " + str(manual_seed)) if (manual_seed is not None) else ""))
+
+    '''
+        Tim O’Shea (Autoencoder + RTN) block error rate for Rayleigh fading channel with 3 taps.
+    '''
+    # plt.plot(ebno_range, [7.6 * 1e-1, 4e-1, 8 * 1e-2, 6 * 1e-3, 4 * 1e-4], '-s')
+
     plt.yscale('log')
-    plt.xlabel('Eb/N0')
+    plt.xlabel("$E_{b}/N_{0}$ (dB)")
     plt.ylabel('Block Error Rate')
     plt.grid()
     plt.legend(loc="upper right", ncol=1)
-    plt.savefig("results/autoencoder_bler_" + model_parameters['channel_type'] + ".png")
+    plt.savefig("results/png/autoencoder_bler_" + channel_parameters['channel_type']  + ".png")
+    plt.savefig("results/eps/autoencoder_bler_" + channel_parameters['channel_type']  + ".eps", format="eps")
     plt.show()
 
 
@@ -112,17 +132,20 @@ def losses_chart(losses):
 def accuracies_chart(accs):
     # plt.figure(figsize=(6, 6))
     fig, ax = plt.subplots()
-    plots = ['model', 'bob', 'willie']
+    plots = ['autoencoder', 'bob', 'willie']
+    colors_map = {'autoencoder': 'k', 'bob': 'r', 'willie': 'g'}
     # plots = ['bob', 'willie']
     for plot in plots:
-        plt.plot(range(0, len(accs[plot])), accs[plot], label=str(plot).capitalize() + " Accuracy")
-    plt.title("Models Accuracies")
+        plt.plot(range(0, len(accs[plot])), accs[plot], colors_map[plot], label=str(plot).capitalize() + " Accuracy")
+    # plt.title("Models Accuracies")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    plt.legend(loc="center right")
+    plt.legend(loc="lower right")
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: round(x * 10)))
-    plt.show()
 
+    plt.savefig("results/png/training_progress_" + channel_parameters['channel_type']  + ".png")
+    plt.savefig("results/eps/training_progress_" + channel_parameters['channel_type']  + ".eps", format="eps")
+    plt.show()
     # plt.figure()
     # plt.plot(range(0, len(results['willie_losses'])), results['willie_losses'], label="Willie Losses")
     # plt.xlabel("Epoch")

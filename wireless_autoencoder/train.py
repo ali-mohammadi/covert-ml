@@ -16,21 +16,18 @@ def train(model, dl, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam):
     optim = optim_fn(model.parameters(), lr=lr, amsgrad=True)
     losses = []
     for epoch in range(num_epoch):
-        model.batch_number = 0
         for i, (x, y) in enumerate(dl):
             x = x.to(device)
             y = y.to(device)
             '''
                 When channel samples parameter is set, same signal passes through different channel realization.
             '''
-            if model_parameters['channel_samples'] is not None:
+            if channel_parameters['channel_samples']  is not None:
                 loss = 0
-                for i in range(model_parameters['channel_samples']):
-                    fading_idx = torch.randperm(model.fading.shape[0])
-                    model.fading = model.fading[fading_idx]
+                for i in range(channel_parameters['channel_samples'] ):
                     output = model(x)
                     loss += loss_fn(output, y)
-                loss = loss / model_parameters['channel_samples']
+                loss = loss / channel_parameters['channel_samples'] 
             else:
                 output = model(x)
                 loss = loss_fn(output, y)
@@ -38,14 +35,13 @@ def train(model, dl, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam):
             optim.zero_grad()
             loss.backward()
             optim.step()
-            model.batch_number += 1
         losses.append(loss.item())
         if (epoch + 1) % 10 == 0:
             print('Epoch [{}/{}], Loss: {:.5f}'.format(epoch + 1, num_epoch, loss.item()))
     return losses
 
 
-def run_train(seed=model_parameters['seed']):
+def run_train(seed=model_parameters['seed'], save=True):
     torch.manual_seed(seed)
     print('Device: ', 'CPU' if device == 'cpu' else 'GPU')
     train_labels = (torch.rand(model_parameters['train_size']) * model_parameters['m']).long()
@@ -60,40 +56,27 @@ def run_train(seed=model_parameters['seed']):
 
     model.train()
 
-    model.fading = torch.randn((model_parameters['train_size'], 1), dtype=torch.cfloat).to(device)
-    # model.fading = jakes_flat(Ns=(model_parameters['train_size'])).to(device)
-
     losses = train(model, train_dl, model_parameters['num_epochs'], lr=model_parameters['learning_rate'], loss_fn=F.cross_entropy,
                    optim_fn=torch.optim.Adam)
 
-    model.save(train_ds, test_ds, save_signals=True)
-
-    model.eval()
-    model_parameters['_batch_size'] = model_parameters['batch_size']
-    model.batch_number = 0
-    model_parameters['batch_size'] = model_parameters['test_size']
-    bler_chart(model, test_ds, manual_seed=seed)
-    losses_chart(losses)
-    model_parameters['batch_size'] = model_parameters['_batch_size']
+    if save:
+        model.save(train_ds, test_ds)
+        torch.save(torch.random.get_rng_state(), '../data/' + channel_parameters['channel_type'] + '/channel_random_state.pt')
 
 
-def run_eval(seed=model_parameters['seed']):
+def run_eval(model=None, test_ds=torch.load('../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_test.pt'), seed=model_parameters['seed']):
     torch.manual_seed(seed)
+    torch.random.set_rng_state(torch.load('../data/' + channel_parameters['channel_type'] + '/channel_random_state.pt'))
     print('Device: ', 'CPU' if device == 'cpu' else 'GPU')
-    model = Wireless_Autoencoder(model_parameters['m'], model_parameters['n_channel']).to(device)
+    if model is None:
+        model = Wireless_Autoencoder(model_parameters['m'], model_parameters['n_channel']).to(device)
+        model.load()
     model.eval()
-    model.load()
-    model.fading = torch.randn((model_parameters['test_size'], 1), dtype=torch.cfloat).to(device)
-    # model.fading = jakes_flat(Ns=(model_parameters['train_size'])).to(device)
-    model.batch_number = 0
-    model_parameters['batch_size'] = model_parameters['test_size']
-    test_ds = torch.load('../data/' + model_parameters['channel_type'] + '/test.pt')
     bler_chart(model, test_ds)
 
 
 '''
     Run training or evaluation
 '''
-
-run_train()
+# run_train()
 run_eval()

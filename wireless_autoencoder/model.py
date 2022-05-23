@@ -31,17 +31,27 @@ class LayerShape(nn.Module):
 class Wireless_Autoencoder(nn.Module):
     def __init__(self, in_channel=model_parameters['m'], compressed_dimension=model_parameters['n_channel']):
         super(Wireless_Autoencoder, self).__init__()
-        self.batch_number = 0
-        self.fading = None
         self.in_channel = in_channel
         self.compressed_dimension = compressed_dimension
         compressed_dimension = 2 * compressed_dimension
 
         self.encoder = nn.Sequential(
             nn.Linear(in_channel, in_channel),
-            nn.Tanh(),
+            nn.ELU(),
             nn.Linear(in_channel, compressed_dimension),
             nn.ELU(),
+            nn.Unflatten(1, (1, -1)),
+            nn.Conv1d(1, model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 4, 2),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Flatten(),
+            nn.Linear(compressed_dimension * 2, compressed_dimension),
+            nn.BatchNorm1d(compressed_dimension)
         )
 
         torch.nn.init.xavier_uniform_(self.encoder[0].weight)
@@ -63,11 +73,9 @@ class Wireless_Autoencoder(nn.Module):
             Decoder with Dense layers
         '''
         # self.decoder = nn.Sequential(
-        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
-        #     nn.ELU(),
-        #     nn.Linear(compressed_dimension * 2, compressed_dimension * 4),
-        #     nn.ELU(),
-        #     nn.Linear(compressed_dimension * 4, in_channel),
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.ReLU(),
+        #     nn.Linear(compressed_dimension, in_channel),
         # )
 
         '''
@@ -100,18 +108,19 @@ class Wireless_Autoencoder(nn.Module):
         '''
         # n = ((self.compressed_dimension) ** 0.5) * (x / x.norm(dim=-1)[:, None])
         n = x
-        c = self.channel(n, model_parameters['channel_type'])
-        if model_parameters['channel_type'] == 'rayleigh':
+        c = self.channel(n, channel_parameters['channel_type'])
+        if channel_parameters['channel_type'] == 'rayleigh':
             # t = c
             h = self.parameter_est(c)
             t = self.transform(c, h)
-        if model_parameters['channel_type'] == 'awgn':
+        if channel_parameters['channel_type'] == 'awgn':
             t = c
         x = self.decoder(t)
         return x
 
-    def channel(self, x, channel=model_parameters['channel_type'], r=model_parameters['r'],
-                ebno=model_parameters['ebno']):
+    def channel(self, x, channel=channel_parameters['channel_type'], r=model_parameters['r'],
+                ebno=channel_parameters['ebno']):
+
         if channel == 'awgn':
             return self.awgn(x, r, ebno)
         if channel == 'rayleigh':
@@ -134,11 +143,8 @@ class Wireless_Autoencoder(nn.Module):
         x = x.view((-1, n_channel, 2))
         x = torch.view_as_complex(x)
 
-        fading_batch = self.fading[self.batch_number * x.size()[0]:(self.batch_number * x.size()[0]) + x.size()[0]].to(
-            device)
-        # fading_batch = torch.randn((model_parameters['batch_size'], 1), dtype=torch.cfloat).to(device)
-
-        if model_parameters['channel_taps'] is not None:
+        if channel_parameters['channel_taps'] is not None:
+            fading_batch = torch.randn((x.size()[0], channel_parameters['channel_taps'] ), dtype=torch.cfloat).to(device)
             padded_signals = torch.nn.functional.pad(x, (int(channel_parameters['channel_taps'] - 1), int(channel_parameters['channel_taps'] - 1), 0, 0))
             output_signal = torch.zeros(model_parameters['batch_size'],
                                         model_parameters['n_channel'] + fading_batch.size()[1] - 1,
@@ -150,6 +156,7 @@ class Wireless_Autoencoder(nn.Module):
 
             output_signal = output_signal[:, 0:-int(channel_parameters['channel_taps'] - 1)]
         else:
+            fading_batch = torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
             output_signal = x * fading_batch
 
         return torch.view_as_real(output_signal).view(-1, n_channel * 2) + noise
@@ -180,7 +187,7 @@ class Wireless_Autoencoder(nn.Module):
             return preds
 
     def decoder_net(self, x):
-        if model_parameters['channel_type'] == 'rayleigh':
+        if channel_parameters['channel_type'] == 'rayleigh':
             h = self.parameter_est(x)
             t = self.transform(x, h)
             return self.decoder(t)
@@ -188,30 +195,28 @@ class Wireless_Autoencoder(nn.Module):
 
     def load(self):
         self.load_state_dict(
-            torch.load('../models/' + model_parameters['channel_type'] + '/wireless_autoencoder.pt'))
+            torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ').pt'))
 
-    def save(self, train_ds, test_ds, save_signals=False, ):
+    def save(self, train_ds, test_ds):
+        self.eval()
+
         torch.save(self.state_dict(),
-                   '../models/' + model_parameters['channel_type'] + '/wireless_autoencoder.pt')
-        torch.save(train_ds, '../data/' + model_parameters['channel_type'] + '/train.pt')
-        torch.save(test_ds, '../data/' + model_parameters['channel_type'] + '/test.pt')
+                   '../models/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ').pt')
+        torch.save(train_ds, '../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_train.pt')
+        torch.save(test_ds, '../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_test.pt')
 
-
-        if save_signals:
-            self.eval()
-            self.to('cpu')
-            encoded_signal = self.encoder(test_ds[:][0])
-            # norm_signal = ((model_parameters['n_channel']) ** 0.5) * (
-            #             encoded_signal / encoded_signal.norm(dim=-1)[:, None])
-            signal_ds = TensorDataset(encoded_signal, test_ds[:][1])
-            torch.save(signal_ds,
-                       '../data/' + model_parameters['channel_type'] + '/test_signals.pt')
-
-            encoded_signal = self.encoder(train_ds[:][0])
-            # norm_signal = ((model_parameters['n_channel']) ** 0.5) * (
-            #             encoded_signal / encoded_signal.norm(dim=-1)[:, None])
-            signal_ds = TensorDataset(encoded_signal, train_ds[:][1])
-            torch.save(signal_ds,
-                       '../data/' + model_parameters['channel_type'] + '/train_signals.pt')
-
-            self.to(device)
+        '''
+            To save the encoder signals in separate data sets
+        '''
+        # self.to('cpu')
+        # encoded_signal = self.encoder(test_ds[:][0])
+        # signal_ds = TensorDataset(encoded_signal, test_ds[:][1])
+        # torch.save(signal_ds,
+        #            '../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_signals_test.pt')
+        #
+        # encoded_signal = self.encoder(train_ds[:][0])
+        # signal_ds = TensorDataset(encoded_signal, train_ds[:][1])
+        # torch.save(signal_ds,
+        #            '../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_signals_train.pt')
+        #
+        # self.to(device)

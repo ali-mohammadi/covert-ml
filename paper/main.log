@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.11)  20 MAY 2022 02:46
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.11)  23 MAY 2022 01:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -527,285 +527,306 @@ Package lastpage Info: Please have a look at the pageslts package at
 (lastpage)             https://www.ctan.org/pkg/pageslts
 (lastpage)             ! on input line 8.
  (tex/abs.tex) (tex/intro.tex) (text/related.tex)
-(text/background.tex [1{C:/Users/alimo/AppData/Local/MiKTeX/fonts/map/pdftex/pd
-ftex.map}
+(text/background.tex
+Package epstopdf Info: Source file: <figs/system_architecture.eps>
+(epstopdf)                    date: 2022-05-23 00:45:14
+(epstopdf)                    size: 265188 bytes
+(epstopdf)             Output file: <figs/system_architecture-eps-converted-to.
+pdf>
+(epstopdf)                    date: 2022-05-23 01:07:23
+(epstopdf)                    size: 98604 bytes
+(epstopdf)             Command: <miktex-epstopdf --outfile=figs/system_architec
+ture-eps-converted-to.pdf figs/system_architecture.eps>
+(epstopdf)             \includegraphics on input line 4.
+Package epstopdf Info: Output file is already uptodate.
+
+
+pdfTeX warning: pdflatex.exe (file ./figs/system_architecture-eps-converted-to.
+pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
+
+<figs/system_architecture-eps-converted-to.pdf, id=80, 424.58624pt x 193.72375p
+t>
+File: figs/system_architecture-eps-converted-to.pdf Graphic file (type pdf)
+<use figs/system_architecture-eps-converted-to.pdf>
+Package pdftex.def Info: figs/system_architecture-eps-converted-to.pdf  used on
+ input line 4.
+(pdftex.def)             Requested size: 438.60315pt x 200.12888pt.
+[1{C:/Users/alimo/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
 
 
 ]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 3.
- (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
+LaTeX Font Info:    Trying to load font information for U+msa on input line 11.
+
+
+(C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 3.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 11.
+
 
 (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )) (tex/model.tex [2]
+Underfull \hbox (badness 1859) in paragraph at lines 5--6
+\OT1/ptm/m/n/10 to rig-or-ously clas-sify trans-mit-ted sig-nals as covert and
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 5--6
 
  []
 
-[3]
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-
-Underfull \vbox (badness 2213) has occurred while \output is active []
-
- [4]
+ [3 <./figs/system_architecture-eps-converted-to.pdf>]
 Package epstopdf Info: Source file: <figs/autoencoder_bler_awgn.eps>
-(epstopdf)                    date: 2022-05-20 00:12:14
-(epstopdf)                    size: 37978 bytes
+(epstopdf)                    date: 2022-05-23 00:53:50
+(epstopdf)                    size: 38286 bytes
 (epstopdf)             Output file: <figs/autoencoder_bler_awgn-eps-converted-t
 o.pdf>
-(epstopdf)                    date: 2022-05-20 01:53:55
-(epstopdf)                    size: 19212 bytes
+(epstopdf)                    date: 2022-05-23 01:27:57
+(epstopdf)                    size: 19349 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/autoencoder_ble
 r_awgn-eps-converted-to.pdf figs/autoencoder_bler_awgn.eps>
-(epstopdf)             \includegraphics on input line 59.
+(epstopdf)             \includegraphics on input line 57.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/autoencoder_bler_awgn-eps-converted-t
 o.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allow
 ed
-<figs/autoencoder_bler_awgn-eps-converted-to.pdf, id=144, 463.7325pt x 347.2975
+<figs/autoencoder_bler_awgn-eps-converted-to.pdf, id=139, 463.7325pt x 347.2975
 pt>
 File: figs/autoencoder_bler_awgn-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/autoencoder_bler_awgn-eps-converted-to.pdf>
 Package pdftex.def Info: figs/autoencoder_bler_awgn-eps-converted-to.pdf  used 
-on input line 59.
-(pdftex.def)             Requested size: 121.26031pt x 90.81454pt.
+on input line 57.
+(pdftex.def)             Requested size: 180.60315pt x 135.26pt.
 Package epstopdf Info: Source file: <figs/autoencoder_bler_rayleigh.eps>
-(epstopdf)                    date: 2022-05-20 00:11:24
-(epstopdf)                    size: 35337 bytes
+(epstopdf)                    date: 2022-05-23 00:54:04
+(epstopdf)                    size: 35231 bytes
 (epstopdf)             Output file: <figs/autoencoder_bler_rayleigh-eps-convert
 ed-to.pdf>
-(epstopdf)                    date: 2022-05-20 01:53:57
-(epstopdf)                    size: 18968 bytes
+(epstopdf)                    date: 2022-05-23 01:27:58
+(epstopdf)                    size: 18961 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/autoencoder_ble
 r_rayleigh-eps-converted-to.pdf figs/autoencoder_bler_rayleigh.eps>
-(epstopdf)             \includegraphics on input line 64.
+(epstopdf)             \includegraphics on input line 61.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/autoencoder_bler_rayleigh-eps-convert
 ed-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> a
 llowed
-<figs/autoencoder_bler_rayleigh-eps-converted-to.pdf, id=145, 463.7325pt x 347.
+<figs/autoencoder_bler_rayleigh-eps-converted-to.pdf, id=140, 463.7325pt x 347.
 2975pt>
 File: figs/autoencoder_bler_rayleigh-eps-converted-to.pdf Graphic file (type pd
 f)
 <use figs/autoencoder_bler_rayleigh-eps-converted-to.pdf>
 Package pdftex.def Info: figs/autoencoder_bler_rayleigh-eps-converted-to.pdf  u
-sed on input line 64.
-(pdftex.def)             Requested size: 121.26031pt x 90.81454pt.
-) (tex/eval.tex
+sed on input line 61.
+(pdftex.def)             Requested size: 180.60315pt x 135.26pt.
+[4]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-Package caption Warning: \label without proper reference on input line 57.
-See the caption package documentation for explanation.
-
-
-LaTeX Warning: Reference `fig:autoencoder_bler' on page 5 undefined on input li
-ne 3.
-
-Package epstopdf Info: Source file: <figs/training_progress_awgn.eps>
-(epstopdf)                    date: 2022-05-20 01:03:59
-(epstopdf)                    size: 38599 bytes
-(epstopdf)             Output file: <figs/training_progress_awgn-eps-converted-
-to.pdf>
-(epstopdf)                    date: 2022-05-20 02:16:27
-(epstopdf)                    size: 19814 bytes
-(epstopdf)             Command: <miktex-epstopdf --outfile=figs/training_progre
-ss_awgn-eps-converted-to.pdf figs/training_progress_awgn.eps>
-(epstopdf)             \includegraphics on input line 6.
-Package epstopdf Info: Output file is already uptodate.
-
-
-pdfTeX warning: pdflatex.exe (file ./figs/training_progress_awgn-eps-converted-
-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allo
-wed
-<figs/training_progress_awgn-eps-converted-to.pdf, id=150, 463.7325pt x 347.297
-5pt>
-File: figs/training_progress_awgn-eps-converted-to.pdf Graphic file (type pdf)
-<use figs/training_progress_awgn-eps-converted-to.pdf>
-Package pdftex.def Info: figs/training_progress_awgn-eps-converted-to.pdf  used
- on input line 6.
-(pdftex.def)             Requested size: 121.26031pt x 90.81454pt.
-Package epstopdf Info: Source file: <figs/training_progress_rayleigh.eps>
-(epstopdf)                    date: 2022-05-20 01:46:17
-(epstopdf)                    size: 43988 bytes
-(epstopdf)             Output file: <figs/training_progress_rayleigh-eps-conver
-ted-to.pdf>
-(epstopdf)                    date: 2022-05-20 02:16:28
-(epstopdf)                    size: 20961 bytes
-(epstopdf)             Command: <miktex-epstopdf --outfile=figs/training_progre
-ss_rayleigh-eps-converted-to.pdf figs/training_progress_rayleigh.eps>
-(epstopdf)             \includegraphics on input line 11.
-Package epstopdf Info: Output file is already uptodate.
-
-
-pdfTeX warning: pdflatex.exe (file ./figs/training_progress_rayleigh-eps-conver
-ted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> 
-allowed
-<figs/training_progress_rayleigh-eps-converted-to.pdf, id=151, 463.7325pt x 347
-.2975pt>
-File: figs/training_progress_rayleigh-eps-converted-to.pdf Graphic file (type p
-df)
-<use figs/training_progress_rayleigh-eps-converted-to.pdf>
-Package pdftex.def Info: figs/training_progress_rayleigh-eps-converted-to.pdf  
-used on input line 11.
-(pdftex.def)             Requested size: 121.26031pt x 90.81454pt.
+)
+(tex/eval.tex
 Package epstopdf Info: Source file: <figs/covert_autoencoder_bler_awgn.eps>
-(epstopdf)                    date: 2022-05-20 01:04:00
-(epstopdf)                    size: 47454 bytes
+(epstopdf)                    date: 2022-05-23 01:24:19
+(epstopdf)                    size: 45240 bytes
 (epstopdf)             Output file: <figs/covert_autoencoder_bler_awgn-eps-conv
 erted-to.pdf>
-(epstopdf)                    date: 2022-05-20 02:36:53
-(epstopdf)                    size: 23168 bytes
+(epstopdf)                    date: 2022-05-23 01:28:03
+(epstopdf)                    size: 19662 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/covert_autoenco
 der_bler_awgn-eps-converted-to.pdf figs/covert_autoencoder_bler_awgn.eps>
-(epstopdf)             \includegraphics on input line 19.
+(epstopdf)             \includegraphics on input line 3.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/covert_autoencoder_bler_awgn-eps-conv
 erted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5
 > allowed
-<figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf, id=155, 463.7325pt x 3
+<figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf, id=152, 463.7325pt x 3
 47.2975pt>
 File: figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf Graphic file (type
  pdf)
 <use figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf>
 Package pdftex.def Info: figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf
-  used on input line 19.
+  used on input line 3.
 (pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
 Package epstopdf Info: Source file: <figs/bob_bler_awgn.eps>
-(epstopdf)                    date: 2022-05-20 01:04:01
-(epstopdf)                    size: 34851 bytes
+(epstopdf)                    date: 2022-05-23 01:24:19
+(epstopdf)                    size: 33952 bytes
 (epstopdf)             Output file: <figs/bob_bler_awgn-eps-converted-to.pdf>
-(epstopdf)                    date: 2022-05-20 02:36:55
-(epstopdf)                    size: 19406 bytes
+(epstopdf)                    date: 2022-05-23 01:28:05
+(epstopdf)                    size: 17655 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/bob_bler_awgn-e
 ps-converted-to.pdf figs/bob_bler_awgn.eps>
-(epstopdf)             \includegraphics on input line 24.
+(epstopdf)             \includegraphics on input line 9.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/bob_bler_awgn-eps-converted-to.pdf): 
 PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figs/bob_bler_awgn-eps-converted-to.pdf, id=156, 463.7325pt x 347.2975pt>
+<figs/bob_bler_awgn-eps-converted-to.pdf, id=153, 463.7325pt x 347.2975pt>
 File: figs/bob_bler_awgn-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/bob_bler_awgn-eps-converted-to.pdf>
 Package pdftex.def Info: figs/bob_bler_awgn-eps-converted-to.pdf  used on input
- line 24.
+ line 9.
 (pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
 Package epstopdf Info: Source file: <figs/willie_accuracy_awgn.eps>
-(epstopdf)                    date: 2022-05-20 01:04:01
-(epstopdf)                    size: 31936 bytes
+(epstopdf)                    date: 2022-05-23 01:24:19
+(epstopdf)                    size: 40919 bytes
 (epstopdf)             Output file: <figs/willie_accuracy_awgn-eps-converted-to
 .pdf>
-(epstopdf)                    date: 2022-05-20 02:36:56
-(epstopdf)                    size: 17259 bytes
+(epstopdf)                    date: 2022-05-23 01:28:07
+(epstopdf)                    size: 19987 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/willie_accuracy
 _awgn-eps-converted-to.pdf figs/willie_accuracy_awgn.eps>
-(epstopdf)             \includegraphics on input line 29.
+(epstopdf)             \includegraphics on input line 15.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/willie_accuracy_awgn-eps-converted-to
 .pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowe
 d
-<figs/willie_accuracy_awgn-eps-converted-to.pdf, id=157, 463.7325pt x 347.2975p
+<figs/willie_accuracy_awgn-eps-converted-to.pdf, id=154, 463.7325pt x 347.2975p
 t>
 File: figs/willie_accuracy_awgn-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/willie_accuracy_awgn-eps-converted-to.pdf>
 Package pdftex.def Info: figs/willie_accuracy_awgn-eps-converted-to.pdf  used o
-n input line 29.
+n input line 15.
 (pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
 Package epstopdf Info: Source file: <figs/covert_autoencoder_bler_rayleigh.eps>
 
-(epstopdf)                    date: 2022-05-20 01:46:18
-(epstopdf)                    size: 43624 bytes
+(epstopdf)                    date: 2022-05-23 01:31:40
+(epstopdf)                    size: 41585 bytes
 (epstopdf)             Output file: <figs/covert_autoencoder_bler_rayleigh-eps-
 converted-to.pdf>
-(epstopdf)                    date: 2022-05-20 02:40:08
-(epstopdf)                    size: 22148 bytes
+(epstopdf)                    date: 2022-05-23 01:32:36
+(epstopdf)                    size: 19477 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/covert_autoenco
 der_bler_rayleigh-eps-converted-to.pdf figs/covert_autoencoder_bler_rayleigh.ep
 s>
-(epstopdf)             \includegraphics on input line 36.
+(epstopdf)             \includegraphics on input line 24.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/covert_autoencoder_bler_rayleigh-eps-
 converted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version 
 <1.5> allowed
-<figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf, id=158, 463.7325pt
+<figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf, id=155, 463.7325pt
  x 347.2975pt>
 File: figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf Graphic file (
 type pdf)
 <use figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf>
 Package pdftex.def Info: figs/covert_autoencoder_bler_rayleigh-eps-converted-to
-.pdf  used on input line 36.
+.pdf  used on input line 24.
 (pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
 Package epstopdf Info: Source file: <figs/bob_bler_rayleigh.eps>
-(epstopdf)                    date: 2022-05-20 01:46:18
-(epstopdf)                    size: 31415 bytes
+(epstopdf)                    date: 2022-05-23 01:31:40
+(epstopdf)                    size: 35285 bytes
 (epstopdf)             Output file: <figs/bob_bler_rayleigh-eps-converted-to.pd
 f>
-(epstopdf)                    date: 2022-05-20 02:40:10
-(epstopdf)                    size: 17684 bytes
+(epstopdf)                    date: 2022-05-23 01:32:38
+(epstopdf)                    size: 17756 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/bob_bler_raylei
 gh-eps-converted-to.pdf figs/bob_bler_rayleigh.eps>
-(epstopdf)             \includegraphics on input line 41.
+(epstopdf)             \includegraphics on input line 30.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/bob_bler_rayleigh-eps-converted-to.pd
 f): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figs/bob_bler_rayleigh-eps-converted-to.pdf, id=159, 463.7325pt x 347.2975pt>
+<figs/bob_bler_rayleigh-eps-converted-to.pdf, id=156, 463.7325pt x 347.2975pt>
 File: figs/bob_bler_rayleigh-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/bob_bler_rayleigh-eps-converted-to.pdf>
 Package pdftex.def Info: figs/bob_bler_rayleigh-eps-converted-to.pdf  used on i
-nput line 41.
+nput line 30.
 (pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
 Package epstopdf Info: Source file: <figs/willie_accuracy_rayleigh.eps>
-(epstopdf)                    date: 2022-05-20 01:46:18
-(epstopdf)                    size: 34179 bytes
+(epstopdf)                    date: 2022-05-23 01:31:40
+(epstopdf)                    size: 40071 bytes
 (epstopdf)             Output file: <figs/willie_accuracy_rayleigh-eps-converte
 d-to.pdf>
-(epstopdf)                    date: 2022-05-20 02:40:12
-(epstopdf)                    size: 17494 bytes
+(epstopdf)                    date: 2022-05-23 01:32:40
+(epstopdf)                    size: 19176 bytes
 (epstopdf)             Command: <miktex-epstopdf --outfile=figs/willie_accuracy
 _rayleigh-eps-converted-to.pdf figs/willie_accuracy_rayleigh.eps>
-(epstopdf)             \includegraphics on input line 46.
+(epstopdf)             \includegraphics on input line 36.
 Package epstopdf Info: Output file is already uptodate.
 
 
 pdfTeX warning: pdflatex.exe (file ./figs/willie_accuracy_rayleigh-eps-converte
 d-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> al
 lowed
-<figs/willie_accuracy_rayleigh-eps-converted-to.pdf, id=160, 463.7325pt x 347.2
+<figs/willie_accuracy_rayleigh-eps-converted-to.pdf, id=157, 463.7325pt x 347.2
 975pt>
 File: figs/willie_accuracy_rayleigh-eps-converted-to.pdf Graphic file (type pdf
 )
 <use figs/willie_accuracy_rayleigh-eps-converted-to.pdf>
 Package pdftex.def Info: figs/willie_accuracy_rayleigh-eps-converted-to.pdf  us
-ed on input line 46.
+ed on input line 36.
 (pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
-) (tex/conc.tex
+Package epstopdf Info: Source file: <figs/training_progress_awgn.eps>
+(epstopdf)                    date: 2022-05-23 01:05:52
+(epstopdf)                    size: 38216 bytes
+(epstopdf)             Output file: <figs/training_progress_awgn-eps-converted-
+to.pdf>
+(epstopdf)                    date: 2022-05-23 01:28:00
+(epstopdf)                    size: 19773 bytes
+(epstopdf)             Command: <miktex-epstopdf --outfile=figs/training_progre
+ss_awgn-eps-converted-to.pdf figs/training_progress_awgn.eps>
+(epstopdf)             \includegraphics on input line 49.
+Package epstopdf Info: Output file is already uptodate.
+
+
+pdfTeX warning: pdflatex.exe (file ./figs/training_progress_awgn-eps-converted-
+to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allo
+wed
+<figs/training_progress_awgn-eps-converted-to.pdf, id=162, 463.7325pt x 347.297
+5pt>
+File: figs/training_progress_awgn-eps-converted-to.pdf Graphic file (type pdf)
+<use figs/training_progress_awgn-eps-converted-to.pdf>
+Package pdftex.def Info: figs/training_progress_awgn-eps-converted-to.pdf  used
+ on input line 49.
+(pdftex.def)             Requested size: 123.84283pt x 92.7488pt.
+Package epstopdf Info: Source file: <figs/training_progress_rayleigh.eps>
+(epstopdf)                    date: 2022-05-23 00:59:54
+(epstopdf)                    size: 38151 bytes
+(epstopdf)             Output file: <figs/training_progress_rayleigh-eps-conver
+ted-to.pdf>
+(epstopdf)                    date: 2022-05-23 01:28:02
+(epstopdf)                    size: 19769 bytes
+(epstopdf)             Command: <miktex-epstopdf --outfile=figs/training_progre
+ss_rayleigh-eps-converted-to.pdf figs/training_progress_rayleigh.eps>
+(epstopdf)             \includegraphics on input line 54.
+Package epstopdf Info: Output file is already uptodate.
+
+
+pdfTeX warning: pdflatex.exe (file ./figs/training_progress_rayleigh-eps-conver
+ted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> 
+allowed
+<figs/training_progress_rayleigh-eps-converted-to.pdf, id=163, 463.7325pt x 347
+.2975pt>
+File: figs/training_progress_rayleigh-eps-converted-to.pdf Graphic file (type p
+df)
+<use figs/training_progress_rayleigh-eps-converted-to.pdf>
+Package pdftex.def Info: figs/training_progress_rayleigh-eps-converted-to.pdf  
+used on input line 54.
+(pdftex.def)             Requested size: 123.84283pt x 92.7488pt.
+) (tex/conc.tex [5 <./figs/autoencoder_bler_awgn-eps-converted-to.pdf> <./figs/
+autoencoder_bler_rayleigh-eps-converted-to.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [5 <./figs/autoencoder_bler_awgn-eps-converted-to.pdf> <./figs/autoencoder_ble
-r_rayleigh-eps-converted-to.pdf> <./figs/training_progress_awgn-eps-converted-t
-o.pdf> <./figs/training_progress_rayleigh-eps-converted-to.pdf>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-) (main.bbl [6 <./figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf> <./fi
-gs/bob_bler_awgn-eps-converted-to.pdf> <./figs/willie_accuracy_awgn-eps-convert
-ed-to.pdf> <./figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf> <./fi
-gs/bob_bler_rayleigh-eps-converted-to.pdf> <./figs/willie_accuracy_rayleigh-eps
--converted-to.pdf>])
+ [6 <./figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf> <./figs/bob_bler
+_awgn-eps-converted-to.pdf> <./figs/willie_accuracy_awgn-eps-converted-to.pdf> 
+<./figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf> <./figs/bob_bler
+_rayleigh-eps-converted-to.pdf> <./figs/willie_accuracy_rayleigh-eps-converted-
+to.pdf> <./figs/training_progress_awgn-eps-converted-to.pdf> <./figs/training_p
+rogress_rayleigh-eps-converted-to.pdf>]) (main.bbl)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -819,23 +840,18 @@ Before submitting the final camera ready copy, remember to:
 
 
 AED: lastpage setting LastPage
-[7
-
-] (main.aux)
-
-LaTeX Warning: There were undefined references.
-
+[7] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: A64C4505FD9959BE137220B16AE3FC55;2088.
+(rerunfilecheck)             Checksum: 3CE1A1796FF7C3B7E92E8581EDFC0286;2088.
  ) 
 Here is how much of TeX's memory you used:
- 13196 strings out of 478619
- 221562 string characters out of 2853060
- 526268 words of memory out of 3000000
- 31067 multiletter control sequences out of 15000+600000
- 504724 words of font info for 88 fonts, out of 8000000 for 9000
+ 13244 strings out of 478619
+ 223187 string characters out of 2853060
+ 528052 words of memory out of 3000000
+ 31114 multiletter control sequences out of 15000+600000
+ 503617 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 65i,9n,66p,3931b,478s stack positions out of 10000i,1000n,20000p,200000b,80000s
+ 65i,9n,66p,3931b,503s stack positions out of 10000i,1000n,20000p,200000b,80000s
 {C:/Program Files/MiKTeX/fonts/enc/dvips/base/8r.enc}<C:/Program Files/MiKTeX
 /fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX/fonts/type1
 /public/amsfonts/cm/cmmi7.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfo
@@ -846,9 +862,9 @@ eX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Program Files/MiKTeX/font
 s/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utm
 bi8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Program 
 Files/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (7 pages, 366022 bytes).
+Output written on main.pdf (7 pages, 458577 bytes).
 PDF statistics:
- 637 PDF objects out of 1000 (max. 8388607)
- 58 named destinations out of 1000 (max. 500000)
- 155 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 643 PDF objects out of 1000 (max. 8388607)
+ 59 named destinations out of 1000 (max. 500000)
+ 160 words of extra memory for PDF output out of 10000 (max. 10000000)
 
