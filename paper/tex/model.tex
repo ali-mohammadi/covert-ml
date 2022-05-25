@@ -2,10 +2,10 @@
 \label{s:model}
 In this section, we begin with an overview of our covert communication model and will further discuss the details of our scheme in the subsequent sections.
 \subsection{Overview}
-An overview of our system architecture is shown in figure (\ref{fig:system_architecture}). The main idea of our work is to establish a covert channel on top of a normal communication between a sender (UserTX) and a receiver (UserRX) who are using an autoencoder-based wireless system to communicate. We consider both an AWGN and a Rayleigh fading channels between our communication parties. The objective of the covert sender (Alice) is to secretly communicate with the covert receiver (Bob) by embedding her messages in form of perturbations that have similar statistical properties as of the channel's noise. This is achieved by help of an observer (Willie), which acts as an observer of the channel, trying to rigorously classify transmitted signals as covert and non-covert after they pass through the channel.\\
+An overview of our system architecture is shown in figure (\ref{fig:system_architecture}). The main idea of our work is to establish a covert channel on top of a normal communication between a sender (UserTX) and a receiver (UserRX) who are using an autoencoder-based wireless system to communicate. We consider both an AWGN and a Rayleigh fading channel between our communication parties. The objective of the covert sender (Alice) is to secretly communicate with the covert receiver (Bob) by embedding her messages in form of perturbations that have similar statistical properties as of the channel's noise. This is achieved by help of an observer (Willie) trying to rigorously classify transmitted signals as covert and non-covert after they pass through the channel.\\
 \subsection{System Architecture}
 As mentioned above, there are three main actors in our covert system which we call them by their placeholder names: Alice, Bob, and Willie from now on. All three are collaborating in our covert scheme and are represented by DNNs. Alice is using a generative model that embeds a confidential message \(m\) into a covert noise vector \(\hat{z}\). This covert signal is then transmitted over the channel after being added to a normal signal \(x\). Similar to every covert communication scheme, there is an observer or warden in the system that will be alerted when seeing any deviation in the statistical properties of the channel. To this end, we are implicitly incorporating a statistical undetectability constraint on the produced covert signals by having a discriminator network employed by Willie. The presence of this discriminator network helps us to ensure that these added covert noise signals are distributed as the real channel noise, making them undetectable. Mathematically, in the AWGN channel model, it means \(\hat{z} \sim \mathcal{CN}(0, \sigma_{chl}^2)\) where \(\sigma_{chl}^2\) will be the variance of the channel's noise.\\
-For a given binary secret message \(m\), Alice first one-hot encodes the message and then uses its generator model to produce a covert noise signal \(\hat{z}\). This covert signal is then added to a vector of a normal signal, which is carrying messages between UserTX and UserRX. Therefore, the covert signals before being transmitted over the channel can be denoted as:
+For a given binary secret message \(m\), Alice first one-hot encodes the message and then uses its generator model to produce a covert noise signal \(\hat{z}\). This covert signal is then added to a vector of a normal signal, which is carrying normal messages between UserTX and UserRX. Therefore, the covert signals before being transmitted over the channel can be denoted as:
 \begin{equation}
 	\hat{x} = x + \hat{z}
 \end{equation}
@@ -16,64 +16,14 @@ For the AWGN channel model, the signal received at the receiver carries within i
 	C(\hat{x}) \Rightarrow \hat{y} = \hat{x} + z
 \end{equation}
 
-\begin{table}
-	\begin{adjustbox}{width=0.85\columnwidth,center}
-	\begin{tabular}{|l|l|} 
-		\hline
-		\multicolumn{2}{|c|}{\textbf{Encoder}} 															\\
-		\hline
-		Layer 																	&	output dimension	\\
-		\hline
-		Input size (size 16)      												&	-    	 		    \\ 
-		Dense + ELU          													&	16					\\
-		Dense + ELU   															&	2 $\times$ 8		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 15		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 4, stride 2) + Tanh 	&   8 $\times$ 6		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 5		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 4		\\
-		Flatten															 		&   32					\\
-		Dense																	&	2 $\times$ 8		\\
-		Normalization															&	2 $\times$ 8		\\
-		\hline   
-		\hline												
-		\multicolumn{2}{|c|}{\textbf{Parameter Estimation}} 											\\
-		\hline
-		Dense + ELU																&	2 $\times$ 16		\\
-		\hline
-		Dense + ELU																&	2 $\times$ 32		\\
-		\hline
-		Dense + ELU																&	2 $\times$ 8		\\
-		\hline
-		Dense																	&	2 $\times$	1		\\
-		\hline
-		\hline
-		\multicolumn{2}{|c|}{\textbf{Decoder}}															\\
-		\hline
-		Layer 																	&	output dimension	\\
-		\hline
-		Dense + Tanh          													&	2 $\times$ 8		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 15		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 4, stride 2) + Tanh 	&   8 $\times$ 6		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 5		\\
-		Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 4		\\
-		Flatten															 		&   32					\\
-		Dense + Tanh															&	2 $\times$ 8		\\
-		Dense + Tanh															&	2 $\times$ 8		\\
-		Dense + Softmax															&	16					\\ 
-		\hline
-	\end{tabular}
-	\end{adjustbox}
-	\caption{Autoencoder's network detailed architecture}
-\end{table}
-
 \subsubsection{Rayleigh Fading Channel Output}
 For the Rayleigh fading channel model, we consider a flat block fading channel where each codeword is assumed to be faded independently. Let \(h\) be the fading coefficient when transmitting the codeword \(\hat{x}\), then the channel function \(C(.)\) and and the final covert signal \(\hat{y}\) is given by:
 \begin{equation}
 	C(\hat{x}) \Rightarrow \hat{y} = h \cdot \hat{x} + z
 \end{equation}
-On the receiver side, Bob receives a transmitted signal \(\hat{y}\) after the channel noise is added into it. He uses its decoder network to reconstruct the covert message \(\hat{m}\). Meanwhile, the UserRX is using the same signal to extract the normal message \(\hat{s}\), which is the reconstructed message of \(s\) sent from UserTX. The statistical properties of the signals on the channel are captured by Willie who observes the channel continuously. His objective is to classify sequences of normal \(y\) and covert signals \(\hat{y}\) passed through the channel and provide useful feedback to Alice. This feedback helps Alice to modify the produced covert signals such that they are indistinguishable from the normal signals of the communication. In other words, it ensures that both normal and covert signals have the same statistical properties.
+On the receiver side, Bob receives a transmitted signal \(\hat{y}\) after the channel noise is added into it. He uses its decoder network to reconstruct the covert message \(\hat{m}\). Meanwhile, the UserRX is using the same signal to extract the normal message \(\hat{s}\), which is the reconstructed message of \(s\) sent from UserTX. The statistical properties of the signals on the channel are captured by Willie who observes the channel continuously. His objective is to classify sequences of normal \(y\) and covert signals \(\hat{y}\) passed through the channel and provide useful feedback to Alice. This feedback helps Alice to modify the produced covert signals such that they are indistinguishable from the normal transmitted signals. In other words, it ensures that both normal and covert signals have the same statistical properties.
 \subsection{General Formulation}
-The very first objective of our covert model is to have a working covert channel. To this end, Bob has to have a plausible accuracy in decoding covert messages that Alice sends through the covert signals \(\hat{y}\). As mentioned in previous section, Alice employs a generative model instead of an encoder model suggested by \cite{mohammed2021adversarial}. Using an encoder model to produce covert signal perturbations will map each covert message \(m\) to a single covert noise vector \(\hat{z}\). Inevitably, these deterministic covert perturbations can be eliminated with ease by a careful observer or defender as it was shown in the work of Bahramali et al. \cite{bahramali2021robust}, who studied the covert attack problem against autoencoder wireless networks. Thus, we use an stochastic generative model for Alice so that each covert message maps to a set of different covert noise signals. Let \(A(\cdot)\) be the underlying function of Alice's generative model that takes a random trigger \(t \sim \mathcal{N}(0, 1)\) and a covert message \(m\)) and produces a covert signal \(\hat{z}\)) (we denote the corresponding covert signal as \(\hat{z}_{m, t} = A(m, t)\)). Let also  \(B(\cdot)\) be the underlying function of the decoder network that Bob makes use of to reconstruct the covert message \(\hat{m}\). Then the reliability of communication between Alice and Bob is achieved using the below loss function:
+The very first objective of our covert model is to have a working covert channel. To this end, Bob has to have a plausible accuracy in decoding covert messages that Alice sends through the covert signals \(\hat{y}\). As mentioned in previous section, Alice employs a generative model instead of an encoder model suggested by \cite{mohammed2021adversarial}. Using an encoder model to produce covert signal perturbations will map each covert message \(m\) to a single covert noise vector \(\hat{z}\). Inevitably, these deterministic covert perturbations can be detected and averaged out with ease by a careful observer or a defender as shown in a work of Bahramali et al. \cite{bahramali2021robust} studying a relatable covert attack problem against autoencoder wireless networks. Thus, we use an stochastic generative model for Alice so that each covert message gets mapped to a set of different covert noise signals. Let \(A(\cdot)\) be the underlying function of Alice's generative model that takes a random trigger \(t \sim \mathcal{N}(0, 1)\) and a covert message \(m\)) and produces a covert signal \(\hat{z}\)) (the corresponding covert signal then can be denoted as \(\hat{z}_{m, t} = A(m, t)\)). Let also  \(B(\cdot)\) be the underlying function of the decoder network that Bob makes use of to reconstruct the covert message \(\hat{m}\). Then the reliability of communication between Alice and Bob is achieved using the below loss function:
 \begin{equation}
 	\begin{array}{l} \label{bob_loss}
 	\mathcal{L}_{Bob} = \mathbb{E}_{m}[CE(\hat{m}, m)] \\ \Rightarrow \mathbb{E}_{m}[CE(B(C(A(m, t) + x)), m)]
@@ -100,64 +50,88 @@ where \(BCE(\cdot)\) is the binary cross entropy between the covert signal \(\ha
 \end{equation}
 where \(\lambda_{Bob}\), \(\lambda_{UserRX}\), and \(\lambda_{Willie}\) determine the importance of each objective for training Alice.
 \iffalse Algorithm (?) summarizes our approach for optimizing the whole system. \fi
+\begin{table}[bp!]
+	\begin{adjustbox}{width=0.85\columnwidth,center}
+		\begin{tabular}{|l|l|} 
+			\hline
+			\multicolumn{2}{|c|}{\textbf{Encoder}} 															\\
+			\hline
+			Layer 																	&	Output dimension	\\
+			\hline
+			Input (size 16)      												&	-    	 		    \\ 
+			Dense + ELU          													&	16					\\
+			Dense + ELU   															&	2 $\times$ 8		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 15		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 4, stride 2) + Tanh 	&   8 $\times$ 6		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 5		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 4		\\
+			Flatten															 		&   32					\\
+			Dense																	&	2 $\times$ 8		\\
+			Normalization															&	2 $\times$ 8		\\
+			\hline   
+			\hline												
+			\multicolumn{2}{|c|}{\textbf{Parameter Estimation}} 											\\
+			\hline
+			Dense + ELU																&	2 $\times$ 16		\\
+			Dense + Tanh															&	2 $\times$ 32		\\
+			Dense + Tanh															&	2 $\times$ 8		\\
+			Dense																	&	2 $\times$	1		\\
+			\hline
+			\hline
+			\multicolumn{2}{|c|}{\textbf{Decoder}}															\\
+			\hline
+			Layer 																	&	output dimension	\\
+			\hline
+			Dense + Tanh          													&	2 $\times$ 8		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 15		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 4, stride 2) + Tanh 	&   8 $\times$ 6		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 5		\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + Tanh 	&   8 $\times$ 4		\\
+			Flatten															 		&   32					\\
+			Dense + Tanh															&	2 $\times$ 8		\\
+			Dense + Tanh															&	2 $\times$ 8		\\
+			Dense + Softmax															&	16					\\ 
+			\hline
+		\end{tabular}
+	\end{adjustbox}
+	\caption{Autoencoder's network detailed architecture}
+	\label{table:autoencoder_structure}
+\end{table}
+\begin{table}[tp!]
+	\begin{adjustbox}{width=0.85\columnwidth,center}
+		\begin{tabular}{|l|l|} 
+			\hline
+			\multicolumn{2}{|c|}{\textbf{Alice}} 															\\
+			\hline
+			Layer 																	&	Output dimension	\\
+			\hline
+			Input (size 8 + $2^k$)      											&	-    	 		    \\ 
+			Dense + ReLU          													&	32 + $2^{k+1}$		\\
+			Dense + ReLU          													&	32 + $2^{k+1}$		\\
+			Dense + ReLU   															&	8 $\times$ $2^k$	\\
+			Dense																	&	8 $\times$ 2	\\
+			\hline   
+			\hline												
+			\multicolumn{2}{|c|}{\textbf{Bob, Willie}} 											\\
+			\hline
+			Input (size 2 $\times$ 8)
+			Dense + Tanh																&	2 $\times$ 8			\\
+			Convolutional (8 filters, kernel size 1 $\times$ 1, stride 1) + LeakyReLU 	&   8 $\times$ 16			\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + LeakyReLU 	&   8 $\times$ 15			\\
+			Convolutional (8 filters, kernel size 1 $\times$ 4, stride 2) + LeakyReLU 	&   8 $\times$ 6			\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + LeakyReLU 	&   8 $\times$ 5			\\
+			Convolutional (8 filters, kernel size 1 $\times$ 2, stride 1) + LeakyReLU 	&   8 $\times$ 4			\\
+			Flatten															 			&   32						\\
+			Dense + Tanh																&	16						\\
+			Dense + (Willie: Sigmoid, Bob: Softmax)										&	Willie: 1, Bob:	$2^k$	\\
+			\hline
+		\end{tabular}
+	\end{adjustbox}
+	\caption{Alice, Bob, and Willie's networks detailed architecture}
+	\label{table:covert_models_structure}
+\end{table}
 \subsection{Neural Network Architecture}
-Before discussing the architecture of our neural network models, we need to state that the communication between UserTX and UserRX is taking place using an autoencoder communication model, which is utilized to encode and decode the normal messages. Since the focus of this work is not to introduce an autoencoder wireless network, we briefly explain how this model works. Also, an overview of the implemented autoencoder model's network architecture can be found in table (?). A more detailed explanation of such a network and the training procedure can be found in the original paper \cite{o2017introduction}. The other three entities of our scheme, which are our covert actors, also use neural networks to function. A detailed network architecture of each is likewise represented in table (?).\\
-\begin{figure}[tp]
-	\center
-	\begin{subfigure}{0.35\textwidth}
-		\includegraphics[width=\linewidth]{figs/autoencoder_bler_awgn}
-		\caption{AWGN channel}
-	\end{subfigure}
-	\begin{subfigure}{0.35\textwidth}
-		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
-		\caption{Rayleigh fading channel}	
-	\end{subfigure}
-	\caption{Trained Autoencoder's BLER over a range of SNR values}
-	\label{fig:autoencoder_bler}
-\end{figure}
-\begin{figure*}[th!]
-	\begin{subfigure}{0.3\textwidth}
-		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_awgn}
-		\caption{Autoencoder's BLER}
-		\label{fig:awgn_resutls_ae}
-	\end{subfigure}
-	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
-		\includegraphics[width=\linewidth]{figs/bob_bler_awgn}
-		\caption{Bob's BLER}	
-		\label{fig:awgn_resutls_bob}
-	\end{subfigure}
-	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
-		\includegraphics[width=\linewidth]{figs/willie_accuracy_awgn}
-		\caption{Willie's accuracy}	
-		\label{fig:awgn_resutls_willie}
-	\end{subfigure}
-	\caption{Trained covert models' performance over AWGN channel for different covert data rates.}
-	\label{fig:awgn_results}
-\end{figure*}
-\begin{figure*}[th!]
-	\begin{subfigure}{0.3\textwidth}
-		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rayleigh}
-		\caption{Autoencoder's BLER}
-		\label{fig:rayleigh_resutls_ae}
-	\end{subfigure}
-	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
-		\includegraphics[width=\linewidth]{figs/bob_bler_rayleigh}
-		\caption{Bob's BLER}
-		\label{fig:rayleigh_resutls_bob}	
-	\end{subfigure}
-	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
-		\includegraphics[width=\linewidth]{figs/willie_accuracy_rayleigh}
-		\caption{Willie's accuracy}
-		\label{fig:rayleigh_resutls_willie}
-	\end{subfigure}
-	\caption{Trained covert models' performance over Rayleigh fading channel for different covert data rates}
-	\label{fig:rayleigh_resutls}
-\end{figure*}
+Before discussing the architecture of our neural network models, we need to state that the communication between UserTX and UserRX is taking place using an autoencoder communication model, which is utilized to encode and decode the normal messages. Since the focus of this work is not to introduce an autoencoder wireless network, we briefly explain how this model works. Also, an overview of the implemented autoencoder model's network architecture can be found in table (\ref{table:autoencoder_structure}). A more detailed explanation of such a network and the training procedure can be found in the original paper \cite{o2017introduction}. The other three entities of our scheme, which are our covert actors, also use neural networks to function. A detailed network architecture of each is likewise represented in table (\ref{table:covert_models_structure}).\\
 Similar to what is proposed in the original autoencoder wireless communication paper, our autoencoder model accepts a binary message \(s\) of size \(k\) bits. Afterwards, the encoder part first one-hot encodes the message to represent each message as a different class and then maps it to a vector of signals of size \(2 \times n\), where \(n\) is the number of channel uses. This transmitted signal is then given to a mapping function that applies the channel effects into it. On the receiver side, there will be two different structures given what the channel model is. In case of an AWGN channel model, the signal is simply passed through the decoder network and the intended message gets extracted. For the Rayleigh fading channel model, however, there will be a parameter estimation model that takes in the signal before it passes through the decoder network in order to estimate the channel's fading coefficients. Followed by this operation, the extracted signal along with the estimated parameters are passed to a transformation function that reverts the channel effects. In our case, we are using a simple division transformation function that divides the received signal by the estimated channel fading coefficients. Note that more complex transformation functions can be used and are described in \cite{o2017introduction}, however optimizing the performance of autoencoder model is out of the scope of this article. Eventually, the transformed signal is fed to the decoder's network and the original normal message is reconstructed by classifying the signal. Similar to the encoder network, Alice takes a covert message \(m\) and transforms it to its corresponding one-hot encoding representation so that each message belongs to a unique class. Next, given a random trigger \(t\), Alice uses its generator model to produce a covert noise signal \(\hat{z}\) and adds it to the normal signal \(x\) that is being transmitted at the time. Bob receives this covert signal that has undergone the channel's effects and feeds it through its decoder network regardless of what the channel model is and extracts the secret message by classifying the signal. Meanwhile, Willie receives the same covert signal \(\hat{y}\) and the non-covert signal \(y\) and outputs a confidence probability \(P\) on how probable it is for the signal to be normal.
 For the Alice's generator model, we use multiple dense layers with ReLU and Tanh activation functions. The first layer of this model takes a trigger number \(t\) and an one-hot encoded covert message \(m\), and acts as embedding layer by enlarging the input's domain space. The following fully contacted layers are to extract the useful features and do the encoding process. The last layer of this model does a dimension transformation so that the generated covert signal \(\hat{z}\) complies with the dimension of the normal signal \(x\) on the channel. Bob's network has a more complicated structure as it has to decode the secret message from a signal \(\hat{y}\) that has been distorted stiffly as a result of the channel's effect. The received message by Bob first goes through the first layer of the network, which is a dense layer with a Tanh activation function, acting as a denoising layer. Then the data is passed through multiple 1-Dimensional Convolutional (1D Conv) layers that supposedly learn the coding that Alice has fabricated to encode the covert messages. We have found that using 1D Conv layers helps Bob and Alice achieving a better consistency in the accuracy of their communication, especially when the channel model is more complicated (i.e. when there is also fading in the channel). The rest of Bob's decoder network consists of two dense layers that does a domain remapping from the learned feature space to the covert message domain space. Similar to the UserRX's decoder network, Bob eventually predicts the covert message by doing a classification on the received signal.
-
 
