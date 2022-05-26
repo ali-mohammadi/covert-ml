@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.11)  25 MAY 2022 00:38
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.3) (preloaded format=pdflatex 2022.5.11)  25 MAY 2022 20:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -570,94 +570,12 @@ LaTeX Info: Redefining \nameref on input line 8.
 Package lastpage Info: Please have a look at the pageslts package at
 (lastpage)             https://www.ctan.org/pkg/pageslts
 (lastpage)             ! on input line 8.
- (tex/abs.tex
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
+ (tex/abs.tex Excluding 'comment' comment.) (tex/intro.tex [1{C:/Users/alimo/Ap
+pData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-) (tex/intro.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [1{C:/Users/alimo/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
-
-
-]) (text/related.tex)
-(text/background.tex
+])
+(text/related.tex) (text/background.tex
 Package epstopdf Info: Source file: <figs/system_architecture.eps>
 (epstopdf)                    date: 2022-05-23 00:45:14
 (epstopdf)                    size: 265188 bytes
@@ -674,20 +592,20 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/system_architecture-eps-converted-to.
 pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
 
-<figs/system_architecture-eps-converted-to.pdf, id=94, 424.58624pt x 193.72375p
+<figs/system_architecture-eps-converted-to.pdf, id=96, 424.58624pt x 193.72375p
 t>
 File: figs/system_architecture-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/system_architecture-eps-converted-to.pdf>
 Package pdftex.def Info: figs/system_architecture-eps-converted-to.pdf  used on
  input line 4.
-(pdftex.def)             Requested size: 438.60315pt x 200.12888pt.
+(pdftex.def)             Requested size: 412.80157pt x 188.3552pt.
 [2]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 11.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 12.
 
  (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 11.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 12.
 
 
 (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsb.fd
@@ -700,7 +618,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 5--6
 [3]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [4 <./figs/system_architecture-eps-converted-to.pdf>] [5]) (tex/eval.tex
+ [4 <./figs/system_architecture-eps-converted-to.pdf>]) (tex/eval.tex
 Package epstopdf Info: Source file: <figs/training_progress_awgn.eps>
 (epstopdf)                    date: 2022-05-23 01:05:52
 (epstopdf)                    size: 38216 bytes
@@ -717,7 +635,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/training_progress_awgn-eps-converted-
 to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allo
 wed
-<figs/training_progress_awgn-eps-converted-to.pdf, id=161, 463.7325pt x 347.297
+<figs/training_progress_awgn-eps-converted-to.pdf, id=154, 463.7325pt x 347.297
 5pt>
 File: figs/training_progress_awgn-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/training_progress_awgn-eps-converted-to.pdf>
@@ -740,7 +658,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/training_progress_rayleigh-eps-conver
 ted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> 
 allowed
-<figs/training_progress_rayleigh-eps-converted-to.pdf, id=162, 463.7325pt x 347
+<figs/training_progress_rayleigh-eps-converted-to.pdf, id=155, 463.7325pt x 347
 .2975pt>
 File: figs/training_progress_rayleigh-eps-converted-to.pdf Graphic file (type p
 df)
@@ -748,6 +666,7 @@ df)
 Package pdftex.def Info: figs/training_progress_rayleigh-eps-converted-to.pdf  
 used on input line 9.
 (pdftex.def)             Requested size: 123.84283pt x 92.7488pt.
+[5]
 Package epstopdf Info: Source file: <figs/autoencoder_bler_awgn.eps>
 (epstopdf)                    date: 2022-05-23 00:53:50
 (epstopdf)                    size: 38286 bytes
@@ -764,13 +683,13 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/autoencoder_bler_awgn-eps-converted-t
 o.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allow
 ed
-<figs/autoencoder_bler_awgn-eps-converted-to.pdf, id=167, 463.7325pt x 347.2975
+<figs/autoencoder_bler_awgn-eps-converted-to.pdf, id=168, 463.7325pt x 347.2975
 pt>
 File: figs/autoencoder_bler_awgn-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/autoencoder_bler_awgn-eps-converted-to.pdf>
 Package pdftex.def Info: figs/autoencoder_bler_awgn-eps-converted-to.pdf  used 
 on input line 21.
-(pdftex.def)             Requested size: 180.60315pt x 135.26pt.
+(pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
 Package epstopdf Info: Source file: <figs/autoencoder_bler_rayleigh.eps>
 (epstopdf)                    date: 2022-05-23 00:54:04
 (epstopdf)                    size: 35231 bytes
@@ -787,14 +706,14 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/autoencoder_bler_rayleigh-eps-convert
 ed-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> a
 llowed
-<figs/autoencoder_bler_rayleigh-eps-converted-to.pdf, id=168, 463.7325pt x 347.
+<figs/autoencoder_bler_rayleigh-eps-converted-to.pdf, id=169, 463.7325pt x 347.
 2975pt>
 File: figs/autoencoder_bler_rayleigh-eps-converted-to.pdf Graphic file (type pd
 f)
 <use figs/autoencoder_bler_rayleigh-eps-converted-to.pdf>
 Package pdftex.def Info: figs/autoencoder_bler_rayleigh-eps-converted-to.pdf  u
 sed on input line 25.
-(pdftex.def)             Requested size: 180.60315pt x 135.26pt.
+(pdftex.def)             Requested size: 154.80157pt x 115.93335pt.
 Package epstopdf Info: Source file: <figs/covert_autoencoder_bler_awgn.eps>
 (epstopdf)                    date: 2022-05-23 01:24:19
 (epstopdf)                    size: 45240 bytes
@@ -811,7 +730,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/covert_autoencoder_bler_awgn-eps-conv
 erted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5
 > allowed
-<figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf, id=169, 463.7325pt x 3
+<figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf, id=170, 463.7325pt x 3
 47.2975pt>
 File: figs/covert_autoencoder_bler_awgn-eps-converted-to.pdf Graphic file (type
  pdf)
@@ -833,7 +752,7 @@ Package epstopdf Info: Output file is already uptodate.
 
 pdfTeX warning: pdflatex.exe (file ./figs/bob_bler_awgn-eps-converted-to.pdf): 
 PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figs/bob_bler_awgn-eps-converted-to.pdf, id=170, 463.7325pt x 347.2975pt>
+<figs/bob_bler_awgn-eps-converted-to.pdf, id=171, 463.7325pt x 347.2975pt>
 File: figs/bob_bler_awgn-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/bob_bler_awgn-eps-converted-to.pdf>
 Package pdftex.def Info: figs/bob_bler_awgn-eps-converted-to.pdf  used on input
@@ -855,7 +774,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/willie_accuracy_awgn-eps-converted-to
 .pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowe
 d
-<figs/willie_accuracy_awgn-eps-converted-to.pdf, id=171, 463.7325pt x 347.2975p
+<figs/willie_accuracy_awgn-eps-converted-to.pdf, id=172, 463.7325pt x 347.2975p
 t>
 File: figs/willie_accuracy_awgn-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/willie_accuracy_awgn-eps-converted-to.pdf>
@@ -880,7 +799,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/covert_autoencoder_bler_rayleigh-eps-
 converted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version 
 <1.5> allowed
-<figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf, id=172, 463.7325pt
+<figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf, id=173, 463.7325pt
  x 347.2975pt>
 File: figs/covert_autoencoder_bler_rayleigh-eps-converted-to.pdf Graphic file (
 type pdf)
@@ -903,7 +822,7 @@ Package epstopdf Info: Output file is already uptodate.
 
 pdfTeX warning: pdflatex.exe (file ./figs/bob_bler_rayleigh-eps-converted-to.pd
 f): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figs/bob_bler_rayleigh-eps-converted-to.pdf, id=173, 463.7325pt x 347.2975pt>
+<figs/bob_bler_rayleigh-eps-converted-to.pdf, id=174, 463.7325pt x 347.2975pt>
 File: figs/bob_bler_rayleigh-eps-converted-to.pdf Graphic file (type pdf)
 <use figs/bob_bler_rayleigh-eps-converted-to.pdf>
 Package pdftex.def Info: figs/bob_bler_rayleigh-eps-converted-to.pdf  used on i
@@ -925,7 +844,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/willie_accuracy_rayleigh-eps-converte
 d-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> al
 lowed
-<figs/willie_accuracy_rayleigh-eps-converted-to.pdf, id=174, 463.7325pt x 347.2
+<figs/willie_accuracy_rayleigh-eps-converted-to.pdf, id=175, 463.7325pt x 347.2
 975pt>
 File: figs/willie_accuracy_rayleigh-eps-converted-to.pdf Graphic file (type pdf
 )
@@ -949,7 +868,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/awgn_normal_constellation-eps-convert
 ed-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> a
 llowed
-<figs/awgn_normal_constellation-eps-converted-to.pdf, id=186, 433.62pt x 433.62
+<figs/awgn_normal_constellation-eps-converted-to.pdf, id=188, 433.62pt x 433.62
 pt>
 File: figs/awgn_normal_constellation-eps-converted-to.pdf Graphic file (type pd
 f)
@@ -973,7 +892,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/awgn_covert_constellation-eps-convert
 ed-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> a
 llowed
-<figs/awgn_covert_constellation-eps-converted-to.pdf, id=187, 433.62pt x 433.62
+<figs/awgn_covert_constellation-eps-converted-to.pdf, id=189, 433.62pt x 433.62
 pt>
 File: figs/awgn_covert_constellation-eps-converted-to.pdf Graphic file (type pd
 f)
@@ -997,7 +916,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/rayleigh_normal_constellation-eps-con
 verted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.
 5> allowed
-<figs/rayleigh_normal_constellation-eps-converted-to.pdf, id=188, 433.62pt x 43
+<figs/rayleigh_normal_constellation-eps-converted-to.pdf, id=190, 433.62pt x 43
 3.62pt>
 File: figs/rayleigh_normal_constellation-eps-converted-to.pdf Graphic file (typ
 e pdf)
@@ -1021,7 +940,7 @@ Package epstopdf Info: Output file is already uptodate.
 pdfTeX warning: pdflatex.exe (file ./figs/rayleigh_covert_constellation-eps-con
 verted-to.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.
 5> allowed
-<figs/rayleigh_covert_constellation-eps-converted-to.pdf, id=189, 433.62pt x 43
+<figs/rayleigh_covert_constellation-eps-converted-to.pdf, id=191, 433.62pt x 43
 3.62pt>
 File: figs/rayleigh_covert_constellation-eps-converted-to.pdf Graphic file (typ
 e pdf)
@@ -1030,7 +949,7 @@ Package pdftex.def Info: figs/rayleigh_covert_constellation-eps-converted-to.pd
 f  used on input line 96.
 (pdftex.def)             Requested size: 123.84283pt x 123.84102pt.
 ) (tex/conc.tex
-Underfull \vbox (badness 5475) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [6 <./figs/training_progress_awgn-eps-converted-to.pdf> <./figs/training_progr
 ess_rayleigh-eps-converted-to.pdf> <./figs/autoencoder_bler_awgn-eps-converted-
@@ -1069,13 +988,13 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: EDCBD33DE282872498930B662FD2BB8E;2089.
  ) 
 Here is how much of TeX's memory you used:
- 14447 strings out of 478619
- 248264 string characters out of 2853060
- 547042 words of memory out of 3000000
- 32275 multiletter control sequences out of 15000+600000
+ 14448 strings out of 478619
+ 248274 string characters out of 2853060
+ 549042 words of memory out of 3000000
+ 32276 multiletter control sequences out of 15000+600000
  504724 words of font info for 88 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 65i,12n,66p,4127b,583s stack positions out of 10000i,1000n,20000p,200000b,80000s
+ 65i,12n,66p,4180b,585s stack positions out of 10000i,1000n,20000p,200000b,80000s
 {C:/Program Files/MiKTeX/fonts/enc/dvips/base/8r.enc}<C:/Program Files/MiKTeX
 /fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files/MiKTeX/fonts/type1
 /public/amsfonts/cm/cmmi7.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfo
@@ -1086,9 +1005,9 @@ eX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Program Files/MiKTeX/font
 s/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utm
 bi8a.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Program 
 Files/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (9 pages, 969510 bytes).
+Output written on main.pdf (9 pages, 973100 bytes).
 PDF statistics:
- 766 PDF objects out of 1000 (max. 8388607)
+ 768 PDF objects out of 1000 (max. 8388607)
  68 named destinations out of 1000 (max. 500000)
  180 words of extra memory for PDF output out of 10000 (max. 10000000)
 
