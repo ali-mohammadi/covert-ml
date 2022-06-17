@@ -1,34 +1,4 @@
-\begin{figure}[tp!]
-	\center
-	\begin{subfigure}{0.24\textwidth}
-		\includegraphics[width=\linewidth]{figs/training_progress_awgn}
-		\caption{AWGN channel}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}{0.24\textwidth}
-		\includegraphics[width=\linewidth]{figs/training_progress_rayleigh}
-		\caption{Rayleigh fading channel}	
-	\end{subfigure}
-	\caption{Covert models' accuracies evaluation during training progress}
-	\label{fig:traning_progress}
-\end{figure}
-\section{Experiments and Evaluation}
-\label{s:eval}
-Before implementing the covert models, we implemented an autoencoder communication network for the normal communication between UserRX and UserTX. Based on the notation used in \cite{o2017introduction}, an \(Autoencoder (n, k)\) is a neural network communication model that sends \(k\) bits of data in \(n\) channel uses. We choose these two numbers of channel uses \(n\) and the binary message of size \(k\) to be 8 and 4, respectively. These numbers are chosen this way so that we could evaluate the performance of our trained autoencoder model with the results given on \cite{o2017introduction}. Nevertheless, our covert model works independent of these parameters and can be used for any autoencoder communication setup. In order to train our autoencoder model, we generate two datasets of train and test by generating random binary messages \(s\) of size \(k\). The training set contains 8192 random binary messages while this number is 51200 for the test set. We intentionally created a much larger data set for testing to make sure that each symbol \(y\) undergoes various channel distortions while evaluating the model's performance. We set the learning rate to 0.001 and optimized the model using the Adam optimizer \cite{kingma2014adam}. We choose the batch size to be 64 and train the model for 100 epochs. For the channel configuration, we choose a fixed signal to noise ratio (SNR) value during training. The SNR value for the AWGN channel is set to 4dB, and we give the higher SNR value of 16dB to the Rayleigh fading channel due to the channel complexity. Figure (\ref{fig:autoencoder_bler}) shows the performance of our trained normal communication models in terms of block error rate (BLER) for a range of SNR values under AWGN and Rayleigh fading channel conditions.\\
-\begin{figure}[bp!]
-	\center
-	\begin{subfigure}{0.30\textwidth}
-		\includegraphics[width=\linewidth]{figs/autoencoder_bler_awgn}
-		\caption{AWGN channel}
-	\end{subfigure}
-	\begin{subfigure}{0.30\textwidth}
-		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
-		\caption{Rayleigh fading channel}	
-	\end{subfigure}
-	\caption{Trained Autoencoder's BLER over a range of SNR values}
-	\label{fig:autoencoder_bler}
-\end{figure}
-\begin{figure*}[th!]
+\begin{figure*}[tp!]
 	\begin{subfigure}{0.3\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_awgn}
 		\caption{Autoencoder's BLER}
@@ -46,10 +16,10 @@ Before implementing the covert models, we implemented an autoencoder communicati
 		\caption{Willie's accuracy}	
 		\label{fig:awgn_resutls_willie}
 	\end{subfigure}
-	\caption{Trained covert models' performance over AWGN channel for different covert data rates.}
+	\caption{Trained covert models' performance over AWGN channel for different covert data rates on a range of SNR values.}
 	\label{fig:awgn_results}
 \end{figure*}
-\begin{figure*}[tp!]
+\begin{figure*}
 	\begin{subfigure}{0.3\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rayleigh}
 		\caption{Autoencoder's BLER}
@@ -67,35 +37,107 @@ Before implementing the covert models, we implemented an autoencoder communicati
 		\caption{Willie's accuracy}
 		\label{fig:rayleigh_resutls_willie}
 	\end{subfigure}
-	\caption{Trained covert models' performance over Rayleigh fading channel for different covert data rates}
+	\caption{Trained covert models' performance over Rayleigh fading channel for different covert data rates on a range of SNR values.}
 	\label{fig:rayleigh_resutls}
 \end{figure*}
-As for the covert models, we evaluate our system's performance on the two different channel models of AWGN and Rayleigh fading. In both settings, we use the same training procedure and network architecture for our covert models. We start our experiment by sending 1 bit of covert data over 8 channel uses and then gradually increase the number of covert bits to see how increasing the covert data rate will effect each component of our covert scheme. The notations \(Alice (n,k)\), \(Bob (n,k))\), and \(Willlie (n,k)\) are used to differentiate models operating on different bit rates and the interpretation of it is just the same as what was explained for the autoencoder model. Since each covert message has to be paired with a normal message, we generate the train and the test covert messages \(m\) set to have the same number of train and test messages as of the autoencoder's. All models are jointly trained for 5000 epochs using Adam optimizer. We adjust the importance of each objective for Alice's training by setting \(\lambda_{Willie} = 2 \lambda_{Bob} = 4 \lambda_{UserRX}\) in (\ref{alice_loss}). We start the training with the learning rate of 0.001 and gradually halve the learning rate after every 500 epochs. In each epoch, we first update parameters of Willie's network using (\ref{willie_loss}), then train Alice's network for one step using (\ref{alice_loss}), and eventually optimize Bob's network based on (\ref{bob_loss}). Although we train our autoencoder network on a fixed SNR value, we find our covert scheme performs better when trained on a range of SNR values. Training our models this way, not only helps Alice to better preserve the normal communication's accuracy but also makes Bob to be able to decode covert messages more accurately on lower SNR values. Accordingly, we set the SNR value to be in the range of -2dB to 8dB for the AWGN channel and 10dB to 20dB for the Rayleigh fading channel.
-Figure (\ref{fig:traning_progress}) shows the progress of each covert actor's accuracy on the test set during the training process. As the training goes on, Bob gradually learns to decode covert messages \(m\) and establishes a reliable communication with Alice. After a few epochs, when the covert communication begins to take up and stabilizes, signals start to deviate from the distribution they had, causing Willie to better detect covert signals. When Willie's accuracy increases, the term \(\mathcal{L}_{Willie}\) dominates the other two objectives of Alice's loss function in (\ref{alice_loss}). This causes Alice to gradually sacrifice its accuracy for the sake of undetectability. Soon afterwards, the training process reaches a stable point where neither of covert models sees any noticeable improvement in their accuracy as the training continues. Figures (\ref{fig:awgn_results}) and (\ref{fig:rayleigh_resutls}) show our final results. It also demonstrates how each entity's accuracy of our covert model changes as we increase the covert rate. Expectedly, the covert communication becomes more unreliable, the impact on normal communication increases, and the detection becomes easier by increasing the covert rate. In figures (\ref{fig:awgn_resutls_willie}) and (\ref{fig:rayleigh_resutls_willie}) the accuracy of Willie is shown in percentage over a range of SNR values for flagging signals as covert and normal. These plots gives us some intuition on how probable it will be for our covert signals to be detected by a target detector at each SNR value for different covert rates.\\
-Figures (\ref{fig:awgn_constellation}) and (\ref{fig:rayleigh_constellation}) compare the constellation cloud of a covert and a normal signal for both AWGN and Rayeligh fading channels. We have marked each symbol of the encoder's ouput signal \(x\) as black circle points on the constellation diagrams. Red constellation cloud shows how covert signals scatter after going through the channel and the green cloud shows this for normal signals. Since data is sent over 8 channel uses, there are 8 black points on the chart. To be consistent with Willie's accuracy and Bob's error rate for our both channel models, we have set the SNR value to 2dB for the AWGN and to 15dB for the Rayleigh fading channel so that in both channels, the probability of detection remains relatively the same and the covert communication BLER stays below \(10^{-1}\). This area of operation gives Alice and Bob a fair covert communication reliability while maintaining their covertness. As it is also evident in these figures, comparing the signal constellation diagrams before and after our covert model applied shows that Alice has perfectly learned to cloak the covert signals into the distribution of the channel's noise after a successful training procedure.
+\begin{figure*}
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rician}
+		\caption{Autoencoder's BLER}
+		\label{fig:rician_resutls_ae}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{figs/bob_bler_rician}
+		\caption{Bob's BLER}
+		\label{fig:rician_resutls_bob}	
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{figs/willie_accuracy_rician}
+		\caption{Willie's accuracy}
+		\label{fig:rician_resutls_willie}
+	\end{subfigure}
+	\caption{Trained covert models' performance over Rician fading channel for different covert data rates on a range of SNR values.}
+	\label{fig:rician_resutls}
+\end{figure*}
+
+\section{Experiments and Evaluation}
+\label{s:eval}
+We categorize our experiments into two different sections. In the first section we give performance evaluation information on our trained autoencoder network. Next, we discuss the results for our implemented covert models.
+
+
+\subsection{Baseline Autoencoder Performance}
+We implemented an autoencoder communication network for the normal communication between UserRX and UserTX. Based on the notation used in \cite{o2017introduction}, an \(Autoencoder (n, k)\) is a neural network communication model that sends \(k\) bits of data in \(n\) channel uses. We choose these two numbers of channel uses \(n\) and the binary message of size \(k\) to be 8 and 4, respectively. These numbers are chosen this way so that we could evaluate the performance of our trained autoencoder model with the results given on \cite{o2017introduction}. Nevertheless, our covert model works independent of these parameters and can be used for any autoencoder communication setup. In order to train our autoencoder model, we generate two datasets of train and test by generating random binary messages \(s\) of size \(k\). There are 8192 random binary messages in the training set and 51200 random binary messages in the test set. We intentionally created a much larger data set for testing to make sure that each symbol \(y\) undergoes various channel distortions to have an accurate evaluation of the model's performance. We set the learning rate to 0.001 and optimized the model using the Adam optimizer \cite{kingma2014adam}. We choose the batch size to be 64 and train the model for 100 epochs. For the channel configuration, we choose a fixed signal to noise ratio (SNR) value during training. The SNR value for the AWGN channel is set to 4dB, and we give the higher SNR value of 16dB to the Rayleigh fading channel due to the channel complexity. Figure \ref{fig:autoencoder_bler} shows the performance of our trained normal communication models in terms of block error rate (BLER) for a range of SNR values under AWGN and Rayleigh fading channel conditions.
+
+
+\subsection{Covert Models Evaluation Results}
+As for the covert models, we evaluate our system's performance on the two different channel models of AWGN and Rayleigh fading. In both settings, we use the same training procedure and network architecture for our covert models. We start our experiment by sending 1 bit of covert data over 8 channel uses and then gradually increase the number of covert bits to see how increasing the covert data rate will effect each component of our covert scheme. The notations \(Alice (n,k)\), \(Bob (n,k))\), and \(Willlie (n,k)\) are used to differentiate models operating on different bit rates and the interpretation of it is just the same as what was explained for the autoencoder model. Since each covert message has to be paired with a normal message, we generate the train and the test covert messages \(m\) set to have the same number of train and test messages as of the autoencoder's. All models are jointly trained for 5000 epochs using Adam optimizer. We adjust the importance of each objective for Alice's training by setting \(\lambda_{Willie} = 2 \lambda_{Bob} = 4 \lambda_{UserRX}\) in (\ref{alice_loss}). We start the training with the learning rate of 0.001 and gradually halve the learning rate after every 500 epochs. In each epoch, we first update parameters of Willie's network using (\ref{willie_loss}), then train Alice's network for one step using (\ref{alice_loss}), and eventually optimize Bob's network based on (\ref{bob_loss}). Although we train our autoencoder network on a fixed SNR value, we find our covert scheme performs better when trained on a range of SNR values. Training our models this way, not only helps Alice to better preserve the normal communication's accuracy but also makes Bob to be able to decode covert messages more accurately on lower SNR values. Accordingly, we set the SNR value to be in the range of -2dB to 8dB for the AWGN channel and 10dB to 20dB for both the Rayleigh and the Rician fading channels.
+
 \begin{figure}[tp!]
+	\center
+	\begin{subfigure}{0.24\textwidth}
+		\includegraphics[width=\linewidth]{figs/training_progress_awgn}
+		\caption{AWGN channel}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.24\textwidth}
+		\includegraphics[width=\linewidth]{figs/training_progress_rayleigh}
+		\caption{Rayleigh fading channel}	
+	\end{subfigure}
+	\begin{subfigure}{0.24\textwidth}
+	\includegraphics[width=\linewidth]{figs/training_progress_rician}
+	\caption{Rician fading channel}	
+	\end{subfigure}
+	\caption{Evaluation results of our covert and autoencoder models during training process show system reaching a stable point after successful training.}
+	\label{fig:traning_progress}
+\end{figure}
+
+
+\textbf{Training Procedure}: Figure \ref{fig:traning_progress} shows the progress of each covert actor's accuracy on the test set during the training process. As the training goes on, Bob gradually learns to decode covert messages \(m\) and establishes a reliable communication with Alice. After a few epochs, when the covert communication begins to take up and stabilizes, signals start to deviate from the distribution they had, causing Willie to better detect covert signals. When Willie's accuracy increases, the term \(\mathcal{L}_{Willie}\) dominates the other two objectives of Alice's loss function in (\ref{alice_loss}). This causes Alice to gradually sacrifice its accuracy for the sake of undetectability. Soon afterwards, the training process reaches a stable point where neither of covert models sees any noticeable improvement in their accuracy as the training continues. 
+
+
+\textbf{Covert Rate}: Figures \ref{fig:awgn_results}, \ref{fig:rayleigh_resutls}, and \ref{fig:rician_resutls} show our final results. It also demonstrates how the accuracy of our each covert models changes as we increase the covert rate. As we expected, the covert communication becomes more unreliable, the impact on normal communication increases, and the detection becomes easier on higher covert rates.
+
+
+\textbf{Undetectibility}: In figures \ref{fig:awgn_resutls_willie}, \ref{fig:rayleigh_resutls_willie}, and \ref{fig:rician_resutls_willie} the accuracy of Willie is shown in percentage over a range of SNR values for flagging signals as covert and normal. These plots gives us some intuition on how probable it will be for our covert signals to be detected by a target detector at each SNR value for different covert rates. Figures \ref{fig:awgn_constellation}),\ref{fig:rayleigh_constellation}), and \ref{fig:rician_constellation} compare the constellation cloud of a covert and a normal signal for AWGN, Rayleigh and Rician fading channels. We have marked each symbol of the encoder's ouput signal \(x\) as black circle points on the constellation diagrams. Red constellation cloud shows how covert signals scatter after going through the channel and the green cloud shows this for normal signals. Since data is sent over 8 channel uses, there are 8 black points on the chart. To be consistent with Willie's accuracy and Bob's error rate for our both channel models, we have set the SNR value to 2dB for the AWGN and 15dB for the Rayleigh fading channel and 8db for the Rician fading channel so that in all channel models, the probability of detection remains relatively the same and the covert communication BLER stays below \(10^{-1}\). This area of operation gives Alice and Bob a fair covert communication reliability while maintaining their covertness. As it is also evident in these figures, comparing the signal constellation diagrams before and after our covert model applied shows that Alice has perfectly learned to cloak the covert signals into the distribution of the channel's noise after a successful training procedure.
+
+\begin{figure}[bp!]
 	\begin{subfigure}{0.24\textwidth}
 		\includegraphics[width=\linewidth]{figs/awgn_normal_constellation}
-		\caption{With no covert transmission}
+		\caption{Without covert transmission}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.24\textwidth}
 		\includegraphics[width=\linewidth]{figs/awgn_covert_constellation}
 		\caption{With covert transmission}	
 	\end{subfigure}
-	\caption{Comparing constellation clouds of a signal before and after our covert scheme being applied on the AWGN channel.}
+	\caption{Comparing AWGN channel constellation clouds of a signal before and after our covert scheme being applied.}
 	\label{fig:awgn_constellation}
 \end{figure}
-\begin{figure}[tp!]
+\begin{figure}[bp!]
 	\begin{subfigure}{0.24\textwidth}
 		\includegraphics[width=\linewidth]{figs/rayleigh_normal_constellation}
-		\caption{With no covert transmission}
+		\caption{Without covert transmission}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.24\textwidth}
 		\includegraphics[width=\linewidth]{figs/rayleigh_covert_constellation}
 		\caption{With covert transmission}	
 	\end{subfigure}
-	\caption{Comparing constellation clouds of a signal before and after our covert scheme being applied on the Rayleigh fading channel.}
+	\caption{Comparing Rayleigh fading channel constellation clouds of a signal before and after our covert scheme being applied.}
 	\label{fig:rayleigh_constellation}
+\end{figure}
+\begin{figure}[bp!]
+	\begin{subfigure}{0.24\textwidth}
+		\includegraphics[width=\linewidth]{figs/rician_normal_constellation}
+		\caption{Without covert transmission}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.24\textwidth}
+		\includegraphics[width=\linewidth]{figs/rician_covert_constellation}
+		\caption{With covert transmission}	
+	\end{subfigure}
+	\caption{Comparing Rician fading channel constellation clouds of a signal before and after our covert scheme being applied.}
+	\label{fig:rician_constellation}
 \end{figure}

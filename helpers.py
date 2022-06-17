@@ -81,6 +81,8 @@ def plot_constellation(data):
 def bler_chart(model, test_ds, manual_seed=None):
     if channel_parameters['channel_type']  == 'rayleigh':
         ebno_range = list(frange(0, 22, 5))
+    elif channel_parameters['channel_type'] == 'rician':
+        ebno_range = list(frange(-5, 22, 5))
     else:
         ebno_range = list(frange(-4, 5, 1))
     ber = [None] * len(ebno_range)
@@ -111,10 +113,13 @@ def bler_chart(model, test_ds, manual_seed=None):
     # plt.plot(ebno_range, [7.6 * 1e-1, 4e-1, 8 * 1e-2, 6 * 1e-3, 4 * 1e-4], '-s')
 
     plt.yscale('log')
-    plt.xlabel("$E_{b}/N_{0}$ (dB)")
-    plt.ylabel('Block Error Rate')
+    plt.xlabel("$E_{b}/N_{0}$ (dB)", fontsize=16)
+    plt.ylabel('Block Error Rate', fontsize=16)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.grid()
-    plt.legend(loc="upper right", ncol=1)
+    plt.legend(loc="upper right", ncol=1, fontsize=16)
+    plt.tight_layout()
     plt.savefig("results/png/autoencoder_bler_" + channel_parameters['channel_type']  + ".png")
     plt.savefig("results/eps/autoencoder_bler_" + channel_parameters['channel_type']  + ".eps", format="eps")
     plt.show()
@@ -138,11 +143,13 @@ def accuracies_chart(accs):
     for plot in plots:
         plt.plot(range(0, len(accs[plot])), accs[plot], colors_map[plot], label=str(plot).capitalize() + " Accuracy")
     # plt.title("Models Accuracies")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.legend(loc="lower right")
+    plt.xlabel("Epoch", fontsize=18)
+    plt.ylabel("Accuracy", fontsize=18)
+    plt.legend(loc="center right", fontsize=16)
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: round(x * 10)))
-
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.tight_layout()
     plt.savefig("results/png/training_progress_" + channel_parameters['channel_type']  + ".png")
     plt.savefig("results/eps/training_progress_" + channel_parameters['channel_type']  + ".eps", format="eps")
     plt.show()

@@ -42,6 +42,27 @@ R.~Soltani, D.~Goeckel, D.~Towsley, B.~A. Bash, and S.~Guha, ``Covert wireless
   communication with artificial noise generation,'' \emph{IEEE Transactions on
   Wireless Communications}, vol.~17, no.~11, pp. 7252--7267, 2018.
 
+\bibitem{sheikholeslami2018multi}
+A.~Sheikholeslami, M.~Ghaderi, D.~Towsley, B.~A. Bash, S.~Guha, and D.~Goeckel,
+  ``Multi-hop routing in covert wireless networks,'' \emph{IEEE Transactions on
+  Wireless Communications}, vol.~17, no.~6, pp. 3656--3669, 2018.
+
+\bibitem{li2021fundamental}
+K.~Li, M.~Ghaderi, and D.~Goeckel, ``Fundamental limits of activity-based
+  covert channels,'' in \emph{2021 IEEE Global Communications Conference
+  (GLOBECOM)}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2021, pp. 1--6.
+
+\bibitem{mohammed2021adversarial}
+H.~Mohammed, X.~Wei, and D.~Saha, ``Adversarial learning for hiding wireless
+  signals,'' in \emph{2021 IEEE Global Communications Conference
+  (GLOBECOM)}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2021, pp. 01--06.
+
+\bibitem{bahramali2021robust}
+A.~Bahramali, M.~Nasr, A.~Houmansadr, D.~Goeckel, and D.~Towsley, ``Robust
+  adversarial attacks against dnn-based wireless communication systems,'' in
+  \emph{Proceedings of the 2021 ACM SIGSAC Conference on Computer and
+  Communications Security}, 2021, pp. 126--140.
+
 \bibitem{o2017introduction}
 T.~O’shea and J.~Hoydis, ``An introduction to deep learning for the physical
   layer,'' \emph{IEEE Transactions on Cognitive Communications and Networking},
@@ -100,16 +121,6 @@ J.~Hayes and G.~Danezis, ``Generating steganographic images via adversarial
   training,'' \emph{Advances in neural information processing systems},
   vol.~30, 2017.
 
-\bibitem{sheikholeslami2018multi}
-A.~Sheikholeslami, M.~Ghaderi, D.~Towsley, B.~A. Bash, S.~Guha, and D.~Goeckel,
-  ``Multi-hop routing in covert wireless networks,'' \emph{IEEE Transactions on
-  Wireless Communications}, vol.~17, no.~6, pp. 3656--3669, 2018.
-
-\bibitem{li2021fundamental}
-K.~Li, M.~Ghaderi, and D.~Goeckel, ``Fundamental limits of activity-based
-  covert channels,'' in \emph{2021 IEEE Global Communications Conference
-  (GLOBECOM)}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2021, pp. 1--6.
-
 \bibitem{dutta2012secret}
 A.~Dutta, D.~Saha, D.~Grunwald, and D.~Sicker, ``Secret agent radio: Covert
   communication through dirty constellations,'' in \emph{International Workshop
@@ -145,17 +156,6 @@ X.~Liao, J.~Si, J.~Shi, Z.~Li, and H.~Ding, ``Generative adversarial network
   assisted power allocation for cooperative cognitive covert communication
   system,'' \emph{IEEE Communications Letters}, vol.~24, no.~7, pp. 1463--1467,
   2020.
-
-\bibitem{mohammed2021adversarial}
-H.~Mohammed, X.~Wei, and D.~Saha, ``Adversarial learning for hiding wireless
-  signals,'' in \emph{2021 IEEE Global Communications Conference
-  (GLOBECOM)}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2021, pp. 01--06.
-
-\bibitem{bahramali2021robust}
-A.~Bahramali, M.~Nasr, A.~Houmansadr, D.~Goeckel, and D.~Towsley, ``Robust
-  adversarial attacks against dnn-based wireless communication systems,'' in
-  \emph{Proceedings of the 2021 ACM SIGSAC Conference on Computer and
-  Communications Security}, 2021, pp. 126--140.
 
 \bibitem{kingma2014adam}
 D.~P. Kingma and J.~Ba, ``Adam: A method for stochastic optimization,''

@@ -62,7 +62,8 @@ def run_train(seed=model_parameters['seed'], save=True):
     if save:
         model.save(train_ds, test_ds)
         torch.save(torch.random.get_rng_state(), '../data/' + channel_parameters['channel_type'] + '/channel_random_state.pt')
-
+    else:
+        run_eval(model, test_ds, seed)
 
 def run_eval(model=None, test_ds=torch.load('../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_test.pt'), seed=model_parameters['seed']):
     torch.manual_seed(seed)
@@ -78,5 +79,5 @@ def run_eval(model=None, test_ds=torch.load('../data/' + channel_parameters['cha
 '''
     Run training or evaluation
 '''
-# run_train()
+run_train()
 run_eval()

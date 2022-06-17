@@ -88,6 +88,8 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         '''
         if channel_parameters['channel_type'] == 'awgn':
             covert_parameters['ebno'] = torch.randint(-2, 8, (1,))
+        elif channel_parameters['channel_type'] == 'rician':
+            covert_parameters['ebno'] = torch.randint(10, 20, (1,))
         else:
             covert_parameters['ebno'] = torch.randint(10, 20, (1,))
         # covert_parameters['ebno'] = channel_parameters['ebno']
@@ -268,6 +270,8 @@ def run_eval(seed=covert_parameters['seed']):
     torch.manual_seed(seed)
     if channel_parameters['channel_type'] == 'awgn':
         ebno_range = list(frange(-4, 5, 1))
+    elif channel_parameters['channel_type'] == 'rician':
+        ebno_range = list(frange(-5, 22, 5))
     else:
         ebno_range = list(frange(0, 22, 5))
 
@@ -275,6 +279,8 @@ def run_eval(seed=covert_parameters['seed']):
 
     if channel_parameters['channel_type'] == 'awgn':
         accs['autoencoder'] = [0.14544921875, 0.09330078125, 0.0578515625, 0.02900390625, 0.01353515625, 0.00513671875, 0.00193359375, 0.00048828125, 7.8125e-05]
+    elif channel_parameters['channel_type'] == 'rician':
+        accs['autoencoder'] = [0.1522265625, 0.03154296875, 0.0055859375, 0.00123046875, 0.00037109375, 0.0001171875]
     else:
         accs['autoencoder'] = [0.1699609375, 0.05806640625, 0.01875, 0.00599609375, 0.0017578125]
 
@@ -328,15 +334,17 @@ def run_eval(seed=covert_parameters['seed']):
         if x == 'autoencoder_covert' or x == 'bob':
             plt.yscale('log')
 
-        plt.xlabel("$E_{b}/N_{0}$ (dB)")
+        plt.xlabel("$E_{b}/N_{0}$ (dB)", fontsize=16)
         if x == 'autoencoder_covert' or x == 'bob':
-            plt.ylabel('Block Error Rate')
+            plt.ylabel('Block Error Rate', fontsize=16)
         else:
-            plt.ylabel('Accuracy')
+            plt.ylabel('Accuracy', fontsize=16)
 
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
         plt.grid()
-        plt.legend(loc="upper right", ncol=1)
-
+        plt.legend(loc="upper right", ncol=1, fontsize=16)
+        plt.tight_layout()
         plt.show()
 
 def eval_rate_change():
@@ -368,6 +376,8 @@ def eval_rate_change():
 
     if channel_parameters['channel_type'] == 'awgn':
         ebno_range = list(frange(-4, 5, 1))
+    elif channel_parameters['channel_type'] == 'rician':
+        ebno_range = list(frange(-5, 22, 5))
     else:
         ebno_range = list(frange(0, 22, 5))
 
@@ -397,12 +407,12 @@ def eval_rate_change():
                 plot_x = list(ebno_range)
                 plot_y = accs[x][i]
             elif x == 'autoencoder_covert':
-                plot_label = "Autoencoder (" + str(model_parameters['n_channel']) + "," + str(
+                plot_label = "AE (" + str(model_parameters['n_channel']) + "," + str(
                     model_parameters['k']) + ") — Alice (" + str(model_parameters['n_channel']) + "," + str(rates[i]) + ")"
                 plot_x = list(ebno_range)
                 plot_y = accs[x][i]
             elif x == 'autoencoder':
-                plot_label = "Autoencoder (" + str(model_parameters['n_channel']) + "," + str(
+                plot_label = "AE (" + str(model_parameters['n_channel']) + "," + str(
                     model_parameters['k']) + ")"
                 plot_x = list(ebno_range)
                 plot_y = accs[x]
@@ -418,18 +428,20 @@ def eval_rate_change():
 
                 if x == 'autoencoder_covert' or x == 'bob':
                     plt.yscale('log')
-                    plt.legend(loc="lower left", ncol=1)
+                    plt.legend(loc="lower left", ncol=1, fontsize=16)
                 else:
-                    plt.legend(loc="upper left", ncol=1)
+                    plt.legend(loc="upper left", ncol=1, fontsize=16)
 
-                plt.xlabel("$E_{b}/N_{0}$ (dB)")
+                plt.xlabel("$E_{b}/N_{0}$ (dB)", fontsize=16)
                 if x == 'autoencoder_covert' or x == 'bob':
-                    plt.ylabel('Block Error Rate')
+                    plt.ylabel('Block Error Rate', fontsize=16)
                 else:
-                    plt.ylabel('Accuracy')
+                    plt.ylabel('Accuracy', fontsize=16)
 
                 plt.grid()
-
+                plt.xticks(fontsize=14)
+                plt.yticks(fontsize=14)
+                plt.tight_layout()
 
 
                 if x == 'autoencoder_covert':
@@ -453,7 +465,7 @@ def eval_rate_change():
 
                 plt.show()
         
-def eval_constellation(ebno=channel_parameters['ebno'], points=500):
+def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None):
     models, _ = initialize()
 
     A, B, W, AE = models
@@ -464,7 +476,9 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500):
 
     A.eval(), B.eval(), W.eval(), AE.eval()
 
-    for i in range(model_parameters['m']):
+    for i in range(0, model_parameters['m']):
+        if s is not None:
+            i = s
         with torch.no_grad():
             test_z = torch.randn(points, covert_parameters['n_channel'] * 2).to(device)
             test_m = (torch.rand(points) * covert_parameters['m']).long().to(device)
@@ -477,33 +491,40 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500):
             random_state = torch.random.get_rng_state()
             covert_signal = AE.channel(test_x + A(test_z, test_m), channel=channel_parameters['channel_type'], ebno=ebno)
             plt = plot_constellation([(covert_signal, 'x', 'tab:red', 2), (encoder_signal, 'o', 'k', 30)])
-            plt.xlabel("In-phase")
-            plt.ylabel('Quadrature')
+            plt.xlabel("In-phase", fontsize=16)
+            plt.ylabel('Quadrature', fontsize=16)
+            plt.xticks(fontsize=14)
+            plt.yticks(fontsize=14)
+            plt.tight_layout()
             plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.eps',
                         format='eps')
             plt.savefig(
-                'results/eps/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.png',
+                'results/png/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.png',
                 format='png')
             plt.close()
 
             torch.random.set_rng_state(random_state)
             normal_signal = AE.channel(test_x, channel=channel_parameters['channel_type'], ebno=ebno)
             plt = plot_constellation([(normal_signal, 'x', 'tab:green', 2), (encoder_signal, 'o', 'k', 30)])
-            plt.xlabel("In-phase")
-            plt.ylabel('Quadrature')
+            plt.xlabel("In-phase", fontsize=18)
+            plt.ylabel('Quadrature', fontsize=18)
+            plt.xticks(fontsize=16)
+            plt.yticks(fontsize=16)
+            plt.tight_layout()
             plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.eps',
                         format='eps')
             plt.savefig(
-                'results/eps/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.png',
+                'results/png/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.png',
                 format='png')
             plt.close()
-
+        if s is not None:
+            break
 
 '''
-    Run) training or evaluation
+    Run training or evaluation
 '''
-# run_train()
-# run_eval()
+run_train()
+run_eval()
 
-eval_constellation()
+# eval_constellation(s=15)
 # eval_rate_change()

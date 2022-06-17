@@ -109,13 +109,7 @@ class Wireless_Autoencoder(nn.Module):
         # n = ((self.compressed_dimension) ** 0.5) * (x / x.norm(dim=-1)[:, None])
         n = x
         c = self.channel(n, channel_parameters['channel_type'])
-        if channel_parameters['channel_type'] == 'rayleigh':
-            # t = c
-            h = self.parameter_est(c)
-            t = self.transform(c, h)
-        if channel_parameters['channel_type'] == 'awgn':
-            t = c
-        x = self.decoder(t)
+        x = self.decoder_net(c)
         return x
 
     def channel(self, x, channel=channel_parameters['channel_type'], r=model_parameters['r'],
@@ -125,6 +119,8 @@ class Wireless_Autoencoder(nn.Module):
             return self.awgn(x, r, ebno)
         if channel == 'rayleigh':
             return self.rayleigh(x, r, ebno)
+        if channel == 'rician':
+            return self.rician(x, r, ebno)
         return x
 
     def awgn(self, x, r, ebno):
@@ -161,6 +157,22 @@ class Wireless_Autoencoder(nn.Module):
 
         return torch.view_as_real(output_signal).view(-1, n_channel * 2) + noise
 
+    def rician(self, x, r, ebno, k=channel_parameters['channel_k']):
+        ebno = 10.0 ** (ebno / 10.0)
+        noise = torch.randn(*x.size(), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+        noise = noise.to(device)
+
+        n_channel = int(x.size()[1] / 2)
+
+        x = x.view((-1, n_channel, 2))
+        x = torch.view_as_complex(x)
+
+        std = (1 / 2 * (k + 1)) ** 0.5
+        mean = (k / 2 * (k + 1)) ** 0.5
+        fading_batch = torch.normal(mean, std, (x.size()[0], 1), dtype=torch.cfloat).to(device)
+
+        return torch.view_as_real(x * fading_batch).view(-1, n_channel * 2) + noise
+
     def transform(self, x, h):
         x = x.view((-1, model_parameters['n_channel'], 2))
         x = torch.view_as_complex(x)
@@ -187,7 +199,7 @@ class Wireless_Autoencoder(nn.Module):
             return preds
 
     def decoder_net(self, x):
-        if channel_parameters['channel_type'] == 'rayleigh':
+        if channel_parameters['channel_type'] == 'rayleigh' or channel_parameters['channel_type'] == 'rician':
             h = self.parameter_est(x)
             t = self.transform(x, h)
             return self.decoder(t)
