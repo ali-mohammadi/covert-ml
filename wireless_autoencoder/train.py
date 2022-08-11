@@ -79,5 +79,5 @@ def run_eval(model=None, test_ds=torch.load('../data/' + channel_parameters['cha
 '''
     Run training or evaluation
 '''
-run_train()
+# run_train()
 run_eval()

@@ -104,7 +104,7 @@ def bler_chart(model, test_ds, manual_seed=None):
     print(ber)
     plt.xlim(ebno_range[0], ebno_range[-1])
 
-    plt.plot(ebno_range, ber, '-ko', clip_on=False,
+    plt.plot(ebno_range[0:-1], ber[0:-1], '-ko', clip_on=True,
              label="Autoencoder (" + str(model_parameters['n_channel']) + "," + str(model_parameters['k']) + ")" + ((" - seed: " + str(manual_seed)) if (manual_seed is not None) else ""))
 
     '''

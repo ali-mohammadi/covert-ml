@@ -89,6 +89,8 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         if channel_parameters['channel_type'] == 'awgn':
             covert_parameters['ebno'] = torch.randint(-2, 8, (1,))
         elif channel_parameters['channel_type'] == 'rician':
+            covert_parameters['channel_k'] = channel_parameters['channel_k']
+            # covert_parameters['channel_k'] = torch.randint(1, 5, (1,)).numpy()[0]
             covert_parameters['ebno'] = torch.randint(10, 20, (1,))
         else:
             covert_parameters['ebno'] = torch.randint(10, 20, (1,))
@@ -102,9 +104,9 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         normal_labels = torch.ones(covert_parameters['batch_size'], 1).to(device)
         covert_labels = torch.zeros(covert_parameters['batch_size'], 1).to(device)
 
-        willie_output = W(AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno']))
+        willie_output = W(AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
         willie_normal_loss = w_criterion(willie_output, normal_labels)
-        willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno']))
+        willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
         willie_covert_loss = w_criterion(willie_output, covert_labels)
 
         willie_loss = willie_normal_loss + willie_covert_loss
@@ -116,15 +118,15 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         alice_output = A(z, m)
         x = x.detach()
 
-        willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno']))
-        bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno']))
+        willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
 
         if covert_parameters['low_rate_multiplier'] is not None:
             alice_output = AE.channel(
                 alice_output.reshape(-1, model_parameters['n_channel'] * 2) + x.reshape(-1, model_parameters[
-                    'n_channel'] * 2), channel_parameters['channel_type'], ebno=covert_parameters['ebno'])
+                    'n_channel'] * 2), channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
         else:
-            alice_output = AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'])
+            alice_output = AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
 
         alice_bob_loss = ae_lambda * ae_criterion(AE.decoder_net(alice_output),
                                                   y) + willie_lambda * w_criterion(
@@ -139,7 +141,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         alice_output = A(z, m)
         x = x.detach()
 
-        bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno']))
+        bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
         bob_loss = b_criterion(bob_output, m)
         bob_loss.backward()
         b_optimizer.step()
@@ -280,7 +282,14 @@ def run_eval(seed=covert_parameters['seed']):
     if channel_parameters['channel_type'] == 'awgn':
         accs['autoencoder'] = [0.14544921875, 0.09330078125, 0.0578515625, 0.02900390625, 0.01353515625, 0.00513671875, 0.00193359375, 0.00048828125, 7.8125e-05]
     elif channel_parameters['channel_type'] == 'rician':
-        accs['autoencoder'] = [0.1522265625, 0.03154296875, 0.0055859375, 0.00123046875, 0.00037109375, 0.0001171875]
+        if channel_parameters['channel_k'] == 1:
+            accs['autoencoder'] = [0.67341796875, 0.421640625, 0.19515625, 0.06857421875, 0.02060546875, 0.00626953125]
+        if channel_parameters['channel_k'] == 2:
+            accs['autoencoder'] = [0.44544921875, 0.188359375, 0.05201171875, 0.0108203125, 0.00216796875, 0.00056640625]
+        if channel_parameters['channel_k'] == 4:
+            accs['autoencoder'] = [0.17064453125, 0.03505859375, 0.00390625, 0.000234375, 0.0, 0.0]
+        if channel_parameters['channel_k'] == 8:
+            accs['autoencoder'] = [0.03015625, 0.00234375, 7.8125e-05, 0.0, 0.0, 0.0]
     else:
         accs['autoencoder'] = [0.1699609375, 0.05806640625, 0.01875, 0.00599609375, 0.0017578125]
 
@@ -310,13 +319,15 @@ def run_eval(seed=covert_parameters['seed']):
             plot_y = accs[x]
             plot_fmt = '-ro'
         elif x == 'autoencoder_covert':
-            plot_label = "Autoencoder" + " (" + str(model_parameters['n_channel']) + "," + str(
+            plot_label = "AE" + " (" + str(model_parameters['n_channel']) + "," + str(
                 model_parameters['k']) + ") - After Covert Communication"
             plot_x = list(ebno_range)
             plot_y = accs[x]
+            if channel_parameters['channel_k'] == 4:
+                plot_y[-1] = 0.0
             plot_fmt = '-ko'
         elif x == 'autoencoder':
-            plot_label = "Autoencoder" + " (" + str(model_parameters['n_channel']) + "," + str(
+            plot_label = "AE" + " (" + str(model_parameters['n_channel']) + "," + str(
                 model_parameters['k']) + ") - Before Covert Communication"
             plot_x = list(ebno_range)
             plot_y = accs[x]
@@ -465,7 +476,7 @@ def eval_rate_change():
 
                 plt.show()
         
-def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None):
+def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save=True):
     models, _ = initialize()
 
     A, B, W, AE = models
@@ -491,16 +502,19 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None):
             random_state = torch.random.get_rng_state()
             covert_signal = AE.channel(test_x + A(test_z, test_m), channel=channel_parameters['channel_type'], ebno=ebno)
             plt = plot_constellation([(covert_signal, 'x', 'tab:red', 2), (encoder_signal, 'o', 'k', 30)])
-            plt.xlabel("In-phase", fontsize=16)
-            plt.ylabel('Quadrature', fontsize=16)
-            plt.xticks(fontsize=14)
-            plt.yticks(fontsize=14)
+            plt.xlabel("In-phase", fontsize=18)
+            plt.ylabel('Quadrature', fontsize=18)
+            plt.xticks(fontsize=16)
+            plt.yticks(fontsize=16)
             plt.tight_layout()
-            plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.eps',
-                        format='eps')
-            plt.savefig(
-                'results/png/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.png',
-                format='png')
+            if save:
+                plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.eps',
+                            format='eps')
+                plt.savefig(
+                    'results/png/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.png',
+                    format='png')
+            else:
+                plt.show()
             plt.close()
 
             torch.random.set_rng_state(random_state)
@@ -511,11 +525,14 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None):
             plt.xticks(fontsize=16)
             plt.yticks(fontsize=16)
             plt.tight_layout()
-            plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.eps',
-                        format='eps')
-            plt.savefig(
-                'results/png/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.png',
-                format='png')
+            if save:
+                plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.eps',
+                            format='eps')
+                plt.savefig(
+                    'results/png/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.png',
+                    format='png')
+            else:
+                plt.show()
             plt.close()
         if s is not None:
             break
@@ -523,8 +540,8 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None):
 '''
     Run training or evaluation
 '''
-run_train()
+# run_train()
 run_eval()
 
-# eval_constellation(s=15)
+# eval_constellation(s=1, save=False)
 # eval_rate_change()

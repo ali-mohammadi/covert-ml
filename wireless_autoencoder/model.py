@@ -113,14 +113,14 @@ class Wireless_Autoencoder(nn.Module):
         return x
 
     def channel(self, x, channel=channel_parameters['channel_type'], r=model_parameters['r'],
-                ebno=channel_parameters['ebno']):
+                ebno=channel_parameters['ebno'], k=channel_parameters['channel_k']):
 
         if channel == 'awgn':
             return self.awgn(x, r, ebno)
         if channel == 'rayleigh':
             return self.rayleigh(x, r, ebno)
         if channel == 'rician':
-            return self.rician(x, r, ebno)
+            return self.rician(x, r, ebno, k)
         return x
 
     def awgn(self, x, r, ebno):

@@ -1,6 +1,6 @@
 channel_parameters = {
-    'channel_type': 'awgn',
-    'channel_k': 2,  # Used only when channel type is set to Rician
+    'channel_type': 'rician',
+    'channel_k': 8,  # Used only when channel type is set to Rician
     'channel_samples': None,
     'channel_taps': None,
 }
@@ -13,7 +13,7 @@ channel_parameters = {
 # if channel_parameters['channel_type'] == 'rayleigh':
 #     channel_parameters['ebno'] = 16
 # if channel_parameters['channel_type'] == 'rician':
-#     channel_parameters['ebno'] = 18
+#     channel_parameters['ebno'] = 30
 
 '''
     Parameters for evaluating covert models on a fixed SNR during training
