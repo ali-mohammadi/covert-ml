@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import sys
 
-from wireless_covert.parameters import covert_parameters
+from wireless_covert.mimo.parameters import covert_parameters
 
 if covert_parameters['device'] == 'auto':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

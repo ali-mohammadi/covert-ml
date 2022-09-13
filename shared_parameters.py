@@ -1,5 +1,9 @@
+system_parameters = {
+    'system_type': 'mimo'
+}
+
 channel_parameters = {
-    'channel_type': 'rician',
+    'channel_type': 'rayleigh',
     'channel_k': 8,  # Used only when channel type is set to Rician
     'channel_samples': None,
     'channel_taps': None,

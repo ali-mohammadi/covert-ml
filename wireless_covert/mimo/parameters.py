@@ -1,4 +1,4 @@
-from channel_parameters import channel_parameters
+from shared_parameters import channel_parameters
 
 covert_parameters = {
     'n_channel': 8,

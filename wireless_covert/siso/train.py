@@ -1,21 +1,20 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.utils.data as Data
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline
 import numpy as np
-import sys
 
-from wireless_autoencoder.parameters import model_parameters
-from wireless_covert.parameters import covert_parameters
-from channel_parameters import channel_parameters
-from wireless_autoencoder.model import Wireless_Autoencoder
+from wireless_autoencoder.siso.parameters import model_parameters
+from wireless_covert.siso.parameters import covert_parameters
+from shared_parameters import channel_parameters, system_parameters
+from wireless_autoencoder.siso.model import Wireless_Autoencoder
 from models import Alice, Bob, Willie, device
-from helpers import frange, jakes_flat, bler_chart, accuracies_chart, losses_chart, plot_constellation, reset_grads, discriminator_accuracy, \
+from helpers import frange, accuracies_chart, plot_constellation, reset_grads, discriminator_accuracy, \
     classifier_accuracy
 
+assert system_parameters['system_type'] == 'siso'
 
 def initialize():
     AE = Wireless_Autoencoder()
@@ -23,12 +22,12 @@ def initialize():
     AE.eval()
     with torch.no_grad():
         autoencoder_ds = torch.load(
-            '../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_train.pt')
+            '../../data/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_train.pt')
         x = AE.encoder(autoencoder_ds[:][0])
         y = autoencoder_ds[:][1]
 
         autoencoder_tds = torch.load(
-            '../data/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_test.pt')
+            '../../data/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_test.pt')
         test_x = AE.encoder(autoencoder_tds[:][0])
         test_y = autoencoder_tds[:][1]
 
@@ -87,12 +86,14 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
             Randomly switching noise power to be robust against different noise levels
         '''
         if channel_parameters['channel_type'] == 'awgn':
+            covert_parameters['channel_k'] = None
             covert_parameters['ebno'] = torch.randint(-2, 8, (1,))
         elif channel_parameters['channel_type'] == 'rician':
             covert_parameters['channel_k'] = channel_parameters['channel_k']
             # covert_parameters['channel_k'] = torch.randint(1, 5, (1,)).numpy()[0]
             covert_parameters['ebno'] = torch.randint(10, 20, (1,))
         else:
+            covert_parameters['channel_k'] = None
             covert_parameters['ebno'] = torch.randint(10, 20, (1,))
         # covert_parameters['ebno'] = channel_parameters['ebno']
 
@@ -224,9 +225,9 @@ def run_train(seed=covert_parameters['seed'], save=True):
     accs, losses = train(models, datasets, lambdas=(ae_lambda, bob_lambda, willie_lambda))
 
     if save:
-        torch.save(A.state_dict(), '../models/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
-        torch.save(B.state_dict(), '../models/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
-        torch.save(E.state_dict(), '../models/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
+        torch.save(A.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
+        torch.save(B.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
+        torch.save(E.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
 
     accuracies_chart(accs)
 
@@ -241,9 +242,9 @@ def evaluate(ebno):
     test_x, test_y = test_ds
     m, test_m = m_ds
 
-    A.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
-    B.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
-    W.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
+    A.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
+    B.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
+    W.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
 
     test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
 
@@ -540,8 +541,8 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
 '''
     Run training or evaluation
 '''
-# run_train()
-run_eval()
+run_train()
+# run_eval()
 
 # eval_constellation(s=1, save=False)
 # eval_rate_change()

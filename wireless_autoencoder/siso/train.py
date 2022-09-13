@@ -8,9 +8,11 @@ import numpy as np
 import sys
 
 from parameters import *
+from shared_parameters import system_parameters
 from model import Wireless_Autoencoder, device
 from helpers import jakes_flat, bler_chart, losses_chart, plot_constellation
 
+assert system_parameters['system_type'] == 'siso'
 
 def train(model, dl, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam):
     optim = optim_fn(model.parameters(), lr=lr, amsgrad=True)
