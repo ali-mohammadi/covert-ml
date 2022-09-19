@@ -39,16 +39,21 @@ class Wireless_Autoencoder(nn.Module):
             nn.ELU(),
             nn.Linear(in_channel, compressed_dimension),
             nn.ELU(),
-            nn.Unflatten(1, (1, -1)),
-            nn.Conv1d(1, model_parameters['n_channel'], 2, 1),
+            nn.Linear(compressed_dimension, compressed_dimension * 2),
+            nn.ELU(),
+            nn.Linear(compressed_dimension * 2, compressed_dimension * 4),
+            nn.ELU(),
+            nn.Linear(compressed_dimension * 4, compressed_dimension * 2),
+            # nn.Unflatten(1, (1, -1)),
+            # nn.Conv1d(1, model_parameters['n_channel'], 2, 1),
+            # nn.Tanh(),
+            # nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 4, 2),
+            # nn.Tanh(),
+            # nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
+            # nn.Tanh(),
+            # nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
             nn.Tanh(),
-            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 4, 2),
-            nn.Tanh(),
-            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
-            nn.Tanh(),
-            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
-            nn.Tanh(),
-            nn.Flatten(),
+            # nn.Flatten(),
             nn.Linear(compressed_dimension * 2, compressed_dimension),
             nn.BatchNorm1d(compressed_dimension)
         )
@@ -88,10 +93,21 @@ class Wireless_Autoencoder(nn.Module):
         '''
             Decoder with Dense layers
         '''
+        # self.decoder = nn.Sequential(
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.ReLU(),
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.ReLU(),
+        #     nn.Linear(compressed_dimension, in_channel),
+        # )
         self.decoder = nn.Sequential(
             nn.Linear(compressed_dimension, compressed_dimension),
             nn.ReLU(),
-            nn.Linear(compressed_dimension, compressed_dimension),
+            nn.Linear(compressed_dimension, compressed_dimension * 2),
+            nn.ReLU(),
+            nn.Linear(compressed_dimension * 2, compressed_dimension * 4),
+            nn.ReLU(),
+            nn.Linear(compressed_dimension * 4, compressed_dimension),
             nn.ReLU(),
             nn.Linear(compressed_dimension, in_channel),
         )

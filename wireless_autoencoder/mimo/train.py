@@ -26,10 +26,9 @@ def train(models, dls, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam, losses
     if losses_ind is None:
         losses_ind = [[] for _ in range(model_parameters['n_user'])]
 
-    coefficients = [(1 / model_parameters['n_user'])] * model_parameters['n_user']
+    coefficients = [1] * model_parameters['n_user']
     for epoch in range(num_epoch):
         for _, xys in enumerate(zip(*dls)):
-
             if channel_parameters['channel_type'] == 'awgn':
                 encodes = []
                 signals = []
@@ -50,7 +49,10 @@ def train(models, dls, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam, losses
                 loss_ind = [0] * model_parameters['n_user']
                 for i in range(model_parameters['n_user']):
                     decode = models[i].decoder_net(signals[i])
-                    loss_ind[i] = coefficients[i] * loss_fn(decode, labels[i])
+                    loss_ind[i] = coefficients[i] * loss_fn(decode, labels[i]) * 10
+                    if epoch % 100 == 0 and _ == 3:
+                        demodulate = models[i].demodulate(signals[i])
+                        print("Autoencoder" + str(i) + " Acc: ", torch.sum(demodulate != labels[i]).item() / len(demodulate))
             else:
                 encodes = []
                 labels = []
@@ -83,7 +85,7 @@ def train(models, dls, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam, losses
 
             # with torch.no_grad():
             #     for i in range(model_parameters['n_user']):
-            #         coefficients[i] = loss_ind[i] / sum(loss_ind)
+            #         coefficients[i] = loss_ind[i].item() / loss.item()
 
         losses.append(loss.item())
         for i in range(model_parameters['n_user']):
@@ -170,7 +172,7 @@ def run_eval(models=None, test_ds=None, seed=model_parameters['seed']):
         idx = torch.randperm(len(test_ds))
         test_dses.append(Data.TensorDataset(test_ds[idx][0], test_ds[idx][1]))
 
-    torch.random.set_rng_state(torch.load('../../data/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/channel_random_state.pt'))
+    # torch.random.set_rng_state(torch.load('../../data/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/channel_random_state.pt'))
     blers_chart(models, test_dses)
 
 
@@ -178,4 +180,34 @@ def run_eval(models=None, test_ds=None, seed=model_parameters['seed']):
     Run training or evaluation
 '''
 run_train()
-run_eval()
+# run_eval()
+
+def plot_constellations():
+    with torch.no_grad():
+        n_samples = 100
+        models = []
+        for i in range(model_parameters['n_user']):
+            model = Wireless_Autoencoder(model_parameters['m'], model_parameters['n_channel'], i + 1).to(device)
+            model.load()
+            model.eval()
+            models.append(model)
+        encodes = []
+        for i in range(model_parameters['n_user']):
+            x = torch.sparse.torch.eye(model_parameters['m']).index_select(dim=0, index=torch.ones(n_samples).int() * 2).to(device)
+            encode = models[i].encoder(x)
+            encode = models[0].channel(encode)
+            encodes.append(encode)
+
+        encodes = torch.stack(encodes)
+        encodes.transpose_(0, 1)
+
+        h = torch.randn((n_samples, model_parameters['n_user'], model_parameters['n_user']),
+                        dtype=torch.cfloat).to(device)
+        # h_r = torch.normal(np.sqrt(0.5), 0,
+        #                    (x.size()[0], model_parameters['n_user'], model_parameters['n_user']))
+        # h_i = torch.normal(np.sqrt(0.5), 0,
+        #                    (x.size()[0], model_parameters['n_user'], model_parameters['n_user']))
+        # h = torch.complex(h_r, h_i).to(device)
+        # signals = models[0].channel(encodes, ebno=channel_parameters['ebno'], h=h)
+        signals = encodes
+        plot_constellation([(signals[:, 0, :], 'o', 'tab:red', 20, 1), (signals[:, 1, :], 'o', 'tab:blue', 20, 2)])

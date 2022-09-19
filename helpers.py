@@ -63,24 +63,30 @@ def jakes_flat(fd=926, Ts=1e-6, Ns=1, t0=0, E0=np.sqrt(1), phi_N=0):
     return torch.unsqueeze(torch.view_as_complex(H.type(torch.float32)), dim=1)
 
 
-def plot_constellation(data):
+def plot_constellation(data, *labels):
     image = plt.figure(figsize=(6, 6))
-    for signals, marker, color, size in data:
-        for signal in signals:
-            signal = signal.cpu().detach().numpy()
-            for i in range(0, model_parameters['n_channel']):
-                plt.scatter(signal[i], signal[i + model_parameters['n_channel']], marker=marker, c=color, s=size)
+    for signals, marker, color, size, *index in data:
+        signals = signals.cpu().detach().numpy()
+
+        for i in range(0, model_parameters['n_channel']):
+            plt.scatter(signals[:, i], signals[:, i + model_parameters['n_channel']], marker=marker, c=color, s=size,
+                        label=('Autoencoder' + str(index[0]) if len(index) else ""))
+
 
     image.axes[0].set_xticks(list(frange(-8, 9, 2)))
     image.axes[0].set_yticks(list(frange(-8, 9, 2)))
 
-    plt.xlim([-9, 9])
-    plt.ylim([-9, 9])
+    plt.xlim([-4, 4])
+    plt.ylim([-4, 4])
+
+    plt.legend()
 
     image.axes[0].axhline(0, linestyle='-', color='gray', alpha=0.5)
     image.axes[0].axvline(0, linestyle='-', color='gray', alpha=0.5)
+    plt.xlabel('In-Phase')
+    plt.ylabel('Quadrature')
 
-    return plt
+    # return plt
     plt.show()
 
 
@@ -137,7 +143,7 @@ def blers_chart(models, test_dses, manual_seed=None):
     elif channel_parameters['channel_type'] == 'rician':
         ebno_range = list(frange(-5, 22, 5))
     else:
-        ebno_range = list(frange(-4, 5, 1))
+        ebno_range = list(frange(-4, 9, 1))
     bers = [[None] * len(ebno_range) for _ in range(model_parameters['n_user'])]
 
     for j in range(0, len(ebno_range)):
