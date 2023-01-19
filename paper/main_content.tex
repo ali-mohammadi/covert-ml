@@ -1,0 +1,46 @@
+
+\documentclass[10pt, conference, letterpaper]{IEEEtran}
+
+\input{com/header}
+\input{com/mathdefs}
+
+
+\newbox\bwk\edef\tempd#1pt{#1\string p\string t}\tempd\def\nbextr#1pt{#1}
+\def\npts#1{\expandafter\nbextr\the#1\space}
+\def\ttwplink#1#2{\special{ps:1 0 0 setrgbcolor}#2\special{ps:0 0 0 setrgbcolor}\setbox\bwk=\hbox{#2}\special{ps:( linkto #1)\space\npts{\wd\bwk} \npts{\dp\bwk} -\npts{\ht\bwk} true\space Cpos}}
+\begin{document}
+
+\title{A GAN-based Covert Channel over Autoencoder Wireless Communication Systems}
+
+\author{
+	\IEEEauthorblockN{Ali Mohammadi Teshnizi}
+	\IEEEauthorblockA{Dept. Computer Science\\
+		University of Calgary\\
+		{ali.mohammaditeshniz@ucalgary.ca}}
+	\and
+	\IEEEauthorblockN{Majid Ghaderi}
+	\IEEEauthorblockA{Dept. Computer Science\\ 
+		University of Calgary\\
+		{mghaderi@ucalgary.ca}}
+	\and	
+	\IEEEauthorblockN{ Dennis Goeckel}
+	\IEEEauthorblockA{Dept. Electrical and Computer Engineering\\ 
+		University of Massachusetts Amherst\\
+		{goeckel@ecs.umass.edu}}
+}
+
+\maketitle
+\input{tex/abs}
+\input{tex/intro}
+\input{tex/related}
+\input{tex/background}
+\input{tex/model-s}
+\input{tex/eval-s}
+\input{tex/model-m}
+\input{tex/eval-m}
+\input{tex/conc}
+
+\bibliographystyle{IEEEtran}
+\bibliography{bib/main}
+
+\end{document}
