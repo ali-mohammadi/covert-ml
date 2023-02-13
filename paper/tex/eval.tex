@@ -4,15 +4,15 @@ We divide our experiments into two different sections. In the first section, we 
 
 \begin{figure*}[!tp]
 	\center
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/autoencoder_bler_awgn}
 		\caption{AWGN channel}
 	\end{subfigure}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
 		\caption{Rayleigh fading channel}	
 	\end{subfigure}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rician}
 		\caption{Rician fading channel}	
 	\end{subfigure}
@@ -41,7 +41,7 @@ Figure \ref{fig:autoencoder_bler} shows the performance of our trained autoencod
 
 
 \subsection{Baseline Multi-User Autoencoders' Performance}
-For the multi-user system, we select the numbers of channel uses and the binary message size to be 8 and 4, which are our default parameters. There are two reasons for selecting these parameters in this manner. First reason is to make our results comparable to what has been represented in \cite{o2017introduction} for the multi-user systems. Second, each user communicating at half rate of the BPSK makes the 2-user system results roughly comparable to a single-user system at the rate of BPSK, and the 4-user system to a single-user system at the QPSK rate. Training and testing sets are generated similar to the way we stated in the previous section. Other parameters such as learning rate, number of epochs, batch size, and the optimization algorithm are also the same as the single-user system. For the channel configuration, we choose an SNR value of 8db for the AWGN channel, and 16db for the Rayleigh channel. However, we evaluate our models over a range of SNR values.
+For the multi-user system, we select the numbers of channel uses and the binary message size to be 8 and 4, which are our default parameters. There are two reasons for selecting these parameters in this manner. First reason is to make our results comparable to \cite{o2017introduction}. Second, each user communicating at half rate of the BPSK makes the 2-user system results roughly comparable to a single-user system at the rate of BPSK, and the 4-user system to a single-user system at the QPSK rate. Training and testing sets are generated similar to the way we stated in the previous section. Other parameters such as learning rate, number of epochs, batch size, and the optimization algorithm are also the same as the single-user system. For the channel configuration, we choose an SNR value of 8db for the AWGN channel, and 16db for the Rayleigh channel. However, we evaluate our models over a range of SNR values.
 
 Figure \ref{fig:multi_autoencoder_bler} shows the performance of our trained autoencoder-based communication models in terms of block error rate (BLER) for a range of SNR values under AWGN and Rayleigh fading channel models for different numbers of users. In both charts, 2-user and 4-user performances are depicted with blue and red colors, respectively and the results are compared with simulated traditional BPSK and QPSK systems with hard decision decoding. Results from these plots indicate that multi-user autoencoder models can obtain almost similar performance of their counterparts in the single-user systems comparing them data rate-wise. We also discovered that, whereas AWGN autoencoder models outperform their peers, Rayleigh fading autoencoders do not. We believe this is due to the more difficult equalization task that the autoencoders in multi-user systems need to undertake compared to the single-user systems. This becomes more evident when our trained single-user autoencoders with BPSK and QPSK data rates were able to outperform all the other results.
 
@@ -60,19 +60,19 @@ Figure \ref{fig:multi_autoencoder_bler} shows the performance of our trained aut
 \end{figure}
 
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_awgn}
 		\caption{Autoencoder's BLER}
 		\label{fig:awgn_resutls_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/bob_bler_awgn}
 		\caption{Bob's BLER}	
 		\label{fig:awgn_resutls_bob}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/willie_accuracy_awgn}
 		\caption{Willie's accuracy}	
 		\label{fig:awgn_resutls_willie}
@@ -81,19 +81,19 @@ Figure \ref{fig:multi_autoencoder_bler} shows the performance of our trained aut
 	\label{fig:awgn_results}
 \end{figure*}
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rayleigh}
 		\caption{Autoencoder's BLER}
 		\label{fig:rayleigh_resutls_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/bob_bler_rayleigh}
 		\caption{Bob's BLER}
 		\label{fig:rayleigh_resutls_bob}	
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/willie_accuracy_rayleigh}
 		\caption{Willie's accuracy}
 		\label{fig:rayleigh_resutls_willie}
@@ -102,19 +102,19 @@ Figure \ref{fig:multi_autoencoder_bler} shows the performance of our trained aut
 	\label{fig:rayleigh_resutls}
 \end{figure*}
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rician}
 		\caption{Autoencoder's BLER}
 		\label{fig:rician_resutls_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/bob_bler_rician}
 		\caption{Bob's BLER}
 		\label{fig:rician_resutls_bob}	
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.3\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/willie_accuracy_rician}
 		\caption{Willie's accuracy}
 		\label{fig:rician_resutls_willie}
@@ -130,19 +130,19 @@ As for the covert models, we evaluate our system's performance on three differen
 Since each covert message \(m\) has to be paired with a normal message \(s\), we create the covert model's training and testing sets to have the same number of samples as are in the autoencoder's. All models are trained for 5000 epochs using the Adam optimizer in an adversarial training setting. We adjust the importance of each of Alice's objectives by setting \(\lambda_{\mathcal{W}} = 2 \lambda_{\mathcal{B}} = 4 \lambda_{\mathcal{U}}\) for single-user system, and \(\lambda_{\mathcal{W}} = 3 \lambda_{\mathcal{B}} = 6 \lambda_{\mathcal{U}}\) for multi-user system in (\ref{alice_loss}). We have come down to these numbers by running a grid search on these parameters. However, our solution is not limited to these parameters, and in fact, one can use a different set of parameters to emphasize on one specific objective more than the others. In both single-user and multi-user systems, we start the training with a learning rate of 0.001 and gradually halve the learning rate after every 500 epochs. In each epoch, we first update the parameters of Willie's network using (\ref{willie_loss}), then train Alice's network for one step using (\ref{alice_loss}), and eventually optimize Bob's network based on (\ref{bob_loss}). Although we train our autoencoder network on a fixed SNR value, we find our covert scheme performing better when trained on a range of SNR values. We do this by randomly switching the SNR value within a predetermined range after each epoch of training. Training our models this way, not only helps Alice to better preserve the normal communication's accuracy but also makes Bob be able to decode covert messages more accurately on lower SNR values. Accordingly, we start by setting the training SNR to the value that the autoencoder was trained on and incrementally expand the SNR range from both ends until no further improvement is observed. As a result, in the single-user system, we come down to the range of -2dB to 8dB for the AWGN channel and 10dB to 20dB for both the Rayleigh and the Rician fading channels. In multi-user system, the optimal range can be found within 0db to 12db range for AWGN channel, and within 10 to 25db for Rayleigh channel.
 
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.32\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_awgn}
 		\caption{Autoencoder's BLER}
 		\label{fig:multi_awgn_results_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.32\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_bob_bler_awgn}
 		\caption{Bob's BLER}	
 		\label{fig:multi_awgn_results_bob}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.32\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_awgn}
 		\caption{Willie's accuracy}	
 		\label{fig:multi_awgn_results_willie}
@@ -151,19 +151,19 @@ Since each covert message \(m\) has to be paired with a normal message \(s\), we
 	\label{fig:multi_awgn_results}
 \end{figure*}
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.32\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_rayleigh}
 		\caption{Autoencoder's BLER}
 		\label{fig:multi_rayleigh_results_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.32\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_bob_bler_rayleigh}
 		\caption{Bob's BLER}
 		\label{fig:multi_rayleigh_results_bob}	
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.32\textwidth}
+	\begin{subfigure}{0.28\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_rayleigh}
 		\caption{Willie's accuracy}
 		\label{fig:multi_rayleigh_results_willie}
