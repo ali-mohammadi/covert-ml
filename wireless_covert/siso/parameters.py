@@ -18,7 +18,7 @@ if channel_parameters['channel_type'] == 'rayleigh':
     if covert_parameters['k'] == 1:
         covert_parameters['seed'] = 0
     if covert_parameters['k'] == 2:
-        covert_parameters['seed'] = 0
+        covert_parameters['seed'] = 1
     if covert_parameters['k'] == 4:
         covert_parameters['seed'] = 2
 
@@ -40,7 +40,7 @@ if channel_parameters['channel_type'] == 'rician':
 '''
 if channel_parameters['channel_type'] == 'awgn':
     if covert_parameters['k'] == 1:
-        covert_parameters['seed'] = 1
+        covert_parameters['seed'] = 0
     if covert_parameters['k'] == 2:
         covert_parameters['seed'] = 0
     if covert_parameters['k'] == 4:
