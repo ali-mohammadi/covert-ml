@@ -43,6 +43,16 @@ class Alice(nn.Module):
         )
 
         self.encode_transform = nn.Sequential(
+            # nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2 * model_parameters['n_user'] *
+            #           model_parameters['n_user'] + 2,
+            #           covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2 * model_parameters['n_user'] *
+            #           model_parameters['n_user'] + 2),
+            # nn.ReLU(inplace=True),
+            # nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2 * model_parameters['n_user'] *
+            #           model_parameters['n_user'] + 2,
+            #           covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2 * model_parameters['n_user'] *
+            #           model_parameters['n_user'] + 4),
+            # nn.ReLU(inplace=True),
             nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2 * model_parameters['n_user'] *
                       model_parameters['n_user'],
                       covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2 * model_parameters['n_user'] *
@@ -62,7 +72,9 @@ class Alice(nn.Module):
             nn.Tanh(),
         )
 
-    def forward(self, x, m, h=None):
+    def forward(self, x, m, h=None, ha=None):
+        if ha is None:
+            raise TypeError("ha is None!")
         m_one_hot_sparse = torch.sparse.torch.eye(covert_parameters['m']).to(device)
         m_one_hot = m_one_hot_sparse.index_select(dim=0, index=m).to(device)
 
@@ -76,6 +88,8 @@ class Alice(nn.Module):
         if h is not None:
             h = torch.view_as_real(h)
             h = h.view(-1, 2 * model_parameters['n_user'] * model_parameters['n_user'])
+            # ha = torch.view_as_real(ha).squeeze().to(device)
+            # encoded_signal = self.encode_transform(torch.cat([x, m_one_hot, h, ha], dim=1).to(device))
             encoded_signal = self.encode_transform(torch.cat([x, m_one_hot, h], dim=1).to(device))
         else:
             encoded_signal = self.encode(torch.cat([x, m_one_hot], dim=1).to(device))
