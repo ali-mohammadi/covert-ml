@@ -196,14 +196,23 @@ class Wireless_Autoencoder(nn.Module):
         return x + noise
 
     def rayleigh(self, x, r, ebno, h):
-        ebno = 10.0 ** (ebno / 10.0)
-        noise = torch.randn((x.size()[0], x.size()[2]), requires_grad=False) / ((2 * r * ebno) ** 0.5)
-        noise = noise.unsqueeze(1).to(device)
+        if ebno is not None:
+            ebno = 10.0 ** (ebno / 10.0)
+            noise = torch.randn((x.size()[0], x.size()[2]), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+            noise = noise.unsqueeze(1).to(device)
+        else:
+            noise = torch.zeros(*x.size(), requires_grad=False)
+            noise = noise.to(device)
 
-        n_channel = int(x.size()[2] / 2)
+        if ebno is not None:
+            n_channel = int(x.size()[2] / 2)
 
-        x = x.view((-1, model_parameters['n_user'], n_channel, 2))
-        x = torch.view_as_complex(x)
+            x = x.view((-1, model_parameters['n_user'], n_channel, 2))
+            x = torch.view_as_complex(x)
+        else:
+            n_channel = int(x.size()[1] / 2)
+            x = x.view((-1, n_channel, 2))
+            x = torch.view_as_complex(x)
 
         if h is None:
             if channel_parameters['channel_taps'] is not None:
@@ -224,8 +233,12 @@ class Wireless_Autoencoder(nn.Module):
                 fading_batch = torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
                 output_signal = x * fading_batch
         else:
-            output_signal = h @ x
-        # test = x * h
+            if ebno is not None:
+                output_signal = h @ x
+            else:
+                output_signal = h * x
+                return torch.view_as_real(output_signal).view(-1, n_channel * 2) + noise
+
         return torch.view_as_real(output_signal).view(-1, model_parameters['n_user'],
                                                       n_channel * 2) + noise
 

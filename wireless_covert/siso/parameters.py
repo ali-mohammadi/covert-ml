@@ -18,9 +18,9 @@ if channel_parameters['channel_type'] == 'rayleigh':
     if covert_parameters['k'] == 1:
         covert_parameters['seed'] = 0
     if covert_parameters['k'] == 2:
-        covert_parameters['seed'] = 1
+        covert_parameters['seed'] = 0
     if covert_parameters['k'] == 4:
-        covert_parameters['seed'] = 2
+        covert_parameters['seed'] = 0
 
 '''
     Model Parameters for Rician
@@ -32,7 +32,7 @@ if channel_parameters['channel_type'] == 'rician':
     if covert_parameters['k'] == 2:
         covert_parameters['seed'] = 0
     if covert_parameters['k'] == 4:
-        covert_parameters['seed'] = 1
+        covert_parameters['seed'] = 0
 
 
 ''' 

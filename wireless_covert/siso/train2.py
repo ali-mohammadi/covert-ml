@@ -97,12 +97,19 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         # covert_parameters['ebno'] = channel_parameters['ebno']
 
         if channel_parameters['channel_type'] == 'rayleigh':
-            h = torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
+            # h = {'w': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device), 'u': None, 'b': None}
+            # h['u'] = h['w']
+            # h['b'] = h['w']
+
+            h = {'w': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device),
+                 'u': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device),
+                 'b': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)}
+
 
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
 
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
-        alice_output = A(z, m, h)
+        alice_output = A(z, m, h['b'])
 
         normal_labels = torch.ones(covert_parameters['batch_size'], 1).to(device)
         covert_labels = torch.zeros(covert_parameters['batch_size'], 1).to(device)
@@ -110,7 +117,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         willie_output = W(AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
         willie_normal_loss = w_criterion(willie_output, normal_labels)
         # willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
-        willie_output = W(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        willie_output = W(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h['w']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
         willie_covert_loss = w_criterion(willie_output, covert_labels)
 
         willie_loss = willie_normal_loss + willie_covert_loss
@@ -119,21 +126,24 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
 
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
-        alice_output = A(z, m, h)
         x = x.detach()
 
+        alice_output = A(z, m, h['b'])
         # willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
-        willie_output = W(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        willie_output = W(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h['w']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+
+        # alice_output = A(z, m, h['b'])
         # bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
-        bob_output = B(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        bob_output = B(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h['b']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
 
         if covert_parameters['low_rate_multiplier'] is not None:
             alice_output = AE.channel(
                 alice_output.reshape(-1, model_parameters['n_channel'] * 2) + x.reshape(-1, model_parameters[
                     'n_channel'] * 2), channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
         else:
+            # alice_output = A(z, m, h['u'])
             # alice_output = AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
-            alice_output = AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
+            alice_output = AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h['u']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
 
         alice_bob_loss = ae_lambda * ae_criterion(AE.decoder_net(alice_output),
                                                   y) + willie_lambda * w_criterion(
@@ -145,11 +155,11 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
 
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
-        alice_output = A(z, m, h)
+        alice_output = A(z, m, h['b'])
         x = x.detach()
 
         # bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
-        bob_output = B(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        bob_output = B(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h['b']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
         bob_loss = b_criterion(bob_output, m)
         bob_loss.backward()
         b_optimizer.step()
@@ -182,27 +192,35 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
                 test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
 
                 if channel_parameters['channel_type'] == 'rayleigh':
-                    h = torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)
+                    # h = {'w': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device), 'u': None, 'b': None}
+                    # h['u'] = h['w']
+                    # h['b'] = h['w']
+
+                    h = {'w': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+                         'u': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+                         'b': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+
 
                 A.eval()
                 B.eval()
                 W.eval()
 
-                alice_output_test = A(test_z, test_m, h)
+                alice_output_test = A(test_z, test_m, h['b'])
 
                 # willie_acc = discriminator_accuracy(
                 #     W(AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])),
                 #     W(AE.channel(test_x, channel_parameters['channel_type'])))
 
                 willie_acc = discriminator_accuracy(
-                    W(AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h) + AE.channel(test_x, channel_parameters['channel_type'])),
+                    W(AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h['w']) + AE.channel(test_x, channel_parameters['channel_type'])),
                     W(AE.channel(test_x, channel_parameters['channel_type'])))
 
                 # bob_acc = classifier_accuracy(
                 #     B(AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])),
                 #     test_m)
+                alice_output_test = A(test_z, test_m, h['b'])
                 bob_acc = classifier_accuracy(
-                        B(AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h) + AE.channel(test_x, channel_parameters['channel_type'])),
+                        B(AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h['b']) + AE.channel(test_x, channel_parameters['channel_type'])),
                         test_m)
 
                 accs['willie'].append(round(willie_acc, 2))
@@ -215,8 +233,9 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
                                                                                                                 'n_channel'] * 2),
                         channel_parameters['channel_type'])
                 else:
+                    alice_output_test = A(test_z, test_m, h['b'])
                     # alice_output_test = AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])
-                    alice_output_test = AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h) + AE.channel(test_x, channel_parameters['channel_type'])
+                    alice_output_test = AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h['u']) + AE.channel(test_x, channel_parameters['channel_type'])
                 # alice_output_test = AE.channel(test_x, channel_parameters['channel_type'])
                 model_acc = classifier_accuracy(AE.decoder_net(alice_output_test), test_y)
 
@@ -244,6 +263,7 @@ def run_train(seed=covert_parameters['seed'], save=True):
         ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.1, 0.8
     else:
         ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.2, 0.6
+        ae_lambda, bob_lambda, willie_lambda = 0.2, covert_parameters['m'] * 0.3, 0.4
         # ae_lambda, bob_lambda, willie_lambda = 0, 1, 0
 
     accs, losses = train(models, datasets, lambdas=(ae_lambda, bob_lambda, willie_lambda))
@@ -271,13 +291,17 @@ def evaluate(ebno):
     W.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
 
     if channel_parameters['channel_type'] == 'rayleigh':
-        h = torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)
+        h = {'w': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+             'u': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+             'b': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+        # h['u'] = h['w']
+        # h['b'] = h['w']
     test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
 
     # willie_acc = discriminator_accuracy(W(AE.channel(A(test_z, test_m) + test_x, channel_parameters['channel_type'], ebno=ebno)),
     #                              W(AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)))
     willie_acc = discriminator_accuracy(
-        W(AE.channel(A(test_z, test_m, h), channel_parameters['channel_type'], ebno=None, h=h) + AE.channel(test_x,
+        W(AE.channel(A(test_z, test_m, h['w']), channel_parameters['channel_type'], ebno=None, h=h['w']) + AE.channel(test_x,
                                                                                                     channel_parameters[
                                                                                                         'channel_type'],
                                                                                                     ebno=ebno)),
@@ -286,17 +310,17 @@ def evaluate(ebno):
     # bob_acc = classifier_accuracy(B(AE.channel(A(test_z, test_m) + test_x, channel_parameters['channel_type'], ebno=ebno)),
     #                        test_m)
     bob_acc = classifier_accuracy(
-        B(AE.channel(A(test_z, test_m, h), channel_parameters['channel_type'], ebno=None, h=h) + AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)),
+        B(AE.channel(A(test_z, test_m, h['b']), channel_parameters['channel_type'], ebno=None, h=h['b']) + AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)),
         test_m)
 
-    alice_output_test = A(test_z, test_m, h)
+    alice_output_test = A(test_z, test_m, h['u'])
     if covert_parameters['low_rate_multiplier'] is not None:
         covert_signal_test = AE.channel(
             alice_output_test.reshape(-1, model_parameters['n_channel'] * 2) + test_x.reshape(-1, model_parameters[
                 'n_channel'] * 2), channel_parameters['channel_type'], ebno=ebno)
     else:
         # covert_signal_test = AE.channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno)
-        covert_signal_test = AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h) + AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)
+        covert_signal_test = AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h['u']) + AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)
 
     # normal_signal_test = AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)
     # ae_acc = classifier_accuracy(AE.decoder_net(normal_signal_test), test_y)
@@ -577,7 +601,7 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
 '''
     Run training or evaluation
 '''
-run_train(save=False)
+run_train()
 run_eval()
 
 # eval_constellation(s=1, save=False)

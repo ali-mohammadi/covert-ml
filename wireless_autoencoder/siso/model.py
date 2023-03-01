@@ -37,33 +37,36 @@ class Wireless_Autoencoder(nn.Module):
 
         self.fading = None
 
-        self.encoder = nn.Sequential(
-            nn.Linear(in_channel, compressed_dimension),
-            nn.ELU(),
-            nn.Linear(compressed_dimension, compressed_dimension * 2),
-            nn.ELU(),
-            nn.Linear(compressed_dimension * 2, compressed_dimension),
-            nn.BatchNorm1d(compressed_dimension, affine=False)
-        )
-
+        '''
+            Encoder with Dense layers
+        '''
         # self.encoder = nn.Sequential(
-        #     nn.Linear(in_channel, in_channel),
-        #     nn.ELU(),
         #     nn.Linear(in_channel, compressed_dimension),
         #     nn.ELU(),
-        #     nn.Unflatten(1, (1, -1)),
-        #     nn.Conv1d(1, model_parameters['n_channel'], 2, 1),
-        #     nn.Tanh(),
-        #     nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], (4 if model_parameters['n_channel'] > 4 else 2), 2),
-        #     nn.Tanh(),
-        #     nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
-        #     nn.Tanh(),
-        #     nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
-        #     nn.Tanh(),
-        #     nn.Flatten(),
-        #     nn.Linear(max(model_parameters['n_channel'] - 4, 1) * model_parameters['n_channel'], compressed_dimension),
+        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
+        #     nn.ELU(),
+        #     nn.Linear(compressed_dimension * 2, compressed_dimension),
         #     nn.BatchNorm1d(compressed_dimension, affine=False)
         # )
+
+        self.encoder = nn.Sequential(
+            nn.Linear(in_channel, in_channel),
+            nn.ELU(),
+            nn.Linear(in_channel, compressed_dimension),
+            nn.ELU(),
+            nn.Unflatten(1, (1, -1)),
+            nn.Conv1d(1, model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], (4 if model_parameters['n_channel'] > 4 else 2), 2),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Flatten(),
+            nn.Linear(max(model_parameters['n_channel'] - 4, 1) * model_parameters['n_channel'], compressed_dimension),
+            nn.BatchNorm1d(compressed_dimension, affine=False)
+        )
 
         torch.nn.init.xavier_uniform_(self.encoder[0].weight)
 
@@ -84,37 +87,37 @@ class Wireless_Autoencoder(nn.Module):
         '''
             Decoder with Dense layers
         '''
-        self.decoder = nn.Sequential(
-            nn.Linear(compressed_dimension, compressed_dimension),
-            nn.ReLU(),
-            nn.Linear(compressed_dimension, compressed_dimension),
-            nn.ReLU(),
-            nn.Linear(compressed_dimension, in_channel),
-        )
+        # self.decoder = nn.Sequential(
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.ReLU(),
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.ReLU(),
+        #     nn.Linear(compressed_dimension, in_channel),
+        # )
 
         '''
             Decoder with Conv layers
         '''
-        # self.decoder = nn.Sequential(
-        #     nn.Linear(compressed_dimension, compressed_dimension),
-        #     nn.Tanh(),
-        #     nn.Unflatten(1, (1, -1)),
-        #     nn.Conv1d(1, model_parameters['n_channel'], 2, 1),
-        #     nn.Tanh(),
-        #     nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'],
-        #               (4 if model_parameters['n_channel'] > 4 else 2), 2),
-        #     nn.Tanh(),
-        #     nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
-        #     nn.Tanh(),
-        #     nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
-        #     nn.Tanh(),
-        #     nn.Flatten(),
-        #     nn.Linear(max(model_parameters['n_channel'] - 4, 1) * model_parameters['n_channel'], compressed_dimension),
-        #     nn.Tanh(),
-        #     nn.Linear(compressed_dimension, compressed_dimension),
-        #     nn.Tanh(),
-        #     nn.Linear(compressed_dimension, in_channel),
-        # )
+        self.decoder = nn.Sequential(
+            nn.Linear(compressed_dimension, compressed_dimension),
+            nn.Tanh(),
+            nn.Unflatten(1, (1, -1)),
+            nn.Conv1d(1, model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'],
+                      (4 if model_parameters['n_channel'] > 4 else 2), 2),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
+            nn.Tanh(),
+            nn.Flatten(),
+            nn.Linear(max(model_parameters['n_channel'] - 4, 1) * model_parameters['n_channel'], compressed_dimension),
+            nn.Tanh(),
+            nn.Linear(compressed_dimension, compressed_dimension),
+            nn.Tanh(),
+            nn.Linear(compressed_dimension, in_channel),
+        )
 
     def forward(self, x):
         x = self.encoder(x)
@@ -130,25 +133,33 @@ class Wireless_Autoencoder(nn.Module):
         return x
 
     def channel(self, x, channel=channel_parameters['channel_type'], r=model_parameters['r'],
-                ebno=channel_parameters['ebno'], k=channel_parameters['channel_k']):
+                ebno=channel_parameters['ebno'], k=channel_parameters['channel_k'], h=None):
         if channel == 'awgn':
             return self.awgn(x, r, ebno)
         if channel == 'rayleigh':
-            return self.rayleigh(x, r, ebno)
+            return self.rayleigh(x, r, ebno, h)
         if channel == 'rician':
             return self.rician(x, r, ebno, k)
         return x
 
     def awgn(self, x, r, ebno):
-        ebno = 10.0 ** (ebno / 10.0)
-        noise = torch.randn(*x.size(), requires_grad=False) / ((2 * r * ebno) ** 0.5)
-        noise = noise.to(device)
+        if ebno != None:
+            ebno = 10.0 ** (ebno / 10.0)
+            noise = torch.randn(*x.size(), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+            noise = noise.to(device)
+        else:
+            noise = torch.zeros(*x.size(), requires_grad=False)
+            noise = noise.to(device)
         return x + noise
 
-    def rayleigh(self, x, r, ebno):
-        ebno = 10.0 ** (ebno / 10.0)
-        noise = torch.randn(*x.size(), requires_grad=False) / ((2 * r * ebno) ** 0.5)
-        noise = noise.to(device)
+    def rayleigh(self, x, r, ebno, h):
+        if ebno != None:
+            ebno = 10.0 ** (ebno / 10.0)
+            noise = torch.randn(*x.size(), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+            noise = noise.to(device)
+        else:
+            noise = torch.zeros(*x.size(), requires_grad=False)
+            noise = noise.to(device)
 
         # print(10 * torch.log10((torch.std(x)) ** 2 / (torch.std(noise) * 2 * r) ** 2))
         # return x
@@ -172,7 +183,10 @@ class Wireless_Autoencoder(nn.Module):
 
             output_signal = output_signal[:, 0:-int(channel_parameters['channel_taps'] - 1)]
         else:
-            fading_batch = torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
+            if h is None:
+                fading_batch = torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
+            else:
+                fading_batch = h
             self.fading = fading_batch
             output_signal = x * fading_batch
 

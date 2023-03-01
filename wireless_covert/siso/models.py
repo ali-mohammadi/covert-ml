@@ -28,7 +28,13 @@ class Alice(nn.Module):
     def __init__(self):
         super(Alice, self).__init__()
         self.encode = nn.Sequential(
-            nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'], covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
+            nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2,
+                      covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2),
+            nn.ReLU(inplace=True),
+            nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2,
+                      covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2 + 4),
+            nn.ReLU(inplace=True),
+            nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2 + 4, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
             nn.ReLU(inplace=True),
             nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
             nn.ReLU(inplace=True),
@@ -38,11 +44,13 @@ class Alice(nn.Module):
             nn.Tanh(),
         )
 
-    def forward(self, x, m):
+    def forward(self, x, m, h):
         m_one_hot_sparse = torch.sparse.torch.eye(covert_parameters['m']).to(device)
         m_one_hot = m_one_hot_sparse.index_select(dim=0, index=m).to(device)
-        encoded_signal = self.encode(torch.cat([x, m_one_hot], dim=1).to(device))
 
+        fading = torch.view_as_real(h).squeeze().to(device)
+
+        encoded_signal = self.encode(torch.cat([x, m_one_hot, fading], dim=1).to(device))
         '''
             Keeping covert signals power same as noise
         '''
