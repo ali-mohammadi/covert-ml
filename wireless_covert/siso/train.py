@@ -14,7 +14,6 @@ from models import Alice, Bob, Willie, device
 from helpers import frange, accuracies_chart, plot_constellation, reset_grads, discriminator_accuracy, \
     classifier_accuracy
 
-assert system_parameters['system_type'] == 'siso'
 
 def initialize():
     AE = Wireless_Autoencoder()
@@ -165,7 +164,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
             b_optimizer.param_groups[0]['lr'] /= 2
             a_optimizer.param_groups[0]['lr'] /= 2
 
-        if epoch % 10 == 0:
+        if epoch % 100 == 0:
             with torch.no_grad():
                 test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
 
@@ -272,27 +271,27 @@ def evaluate(ebno):
 def run_eval(seed=covert_parameters['seed']):
     torch.manual_seed(seed)
     if channel_parameters['channel_type'] == 'awgn':
-        ebno_range = list(frange(-4, 5, 1))
+        ebno_range = list(frange(-4, 9, 1))
     elif channel_parameters['channel_type'] == 'rician':
-        ebno_range = list(frange(-5, 22, 5))
+        ebno_range = list(frange(0, 22, 5))
     else:
         ebno_range = list(frange(0, 22, 5))
 
     accs = {'autoencoder': [], 'autoencoder_covert': [], 'bob': [], 'willie': []}
 
     if channel_parameters['channel_type'] == 'awgn':
-        accs['autoencoder'] = [0.14544921875, 0.09330078125, 0.0578515625, 0.02900390625, 0.01353515625, 0.00513671875, 0.00193359375, 0.00048828125, 7.8125e-05]
+        accs['autoencoder'] = [0.39609375, 0.32046875, 0.2424609375, 0.17330078125, 0.1169921875, 0.0701953125, 0.03802734375, 0.0185546875, 0.00767578125, 0.00265625, 0.00078125, 0.0001953125, 3.90625e-05]
     elif channel_parameters['channel_type'] == 'rician':
         if channel_parameters['channel_k'] == 1:
-            accs['autoencoder'] = [0.67341796875, 0.421640625, 0.19515625, 0.06857421875, 0.02060546875, 0.00626953125]
-        if channel_parameters['channel_k'] == 2:
-            accs['autoencoder'] = [0.44544921875, 0.188359375, 0.05201171875, 0.0108203125, 0.00216796875, 0.00056640625]
-        if channel_parameters['channel_k'] == 4:
-            accs['autoencoder'] = [0.17064453125, 0.03505859375, 0.00390625, 0.000234375, 0.0, 0.0]
-        if channel_parameters['channel_k'] == 8:
-            accs['autoencoder'] = [0.03015625, 0.00234375, 7.8125e-05, 0.0, 0.0, 0.0]
+            accs['autoencoder'] = [0.18876953125, 0.04037109375, 0.00693359375, 0.00193359375, 0.0005078125]
+        # if channel_parameters['channel_k'] == 2:
+        #     accs['autoencoder'] = [0.44544921875, 0.188359375, 0.05201171875, 0.0108203125, 0.00216796875, 0.00056640625]
+        # if channel_parameters['channel_k'] == 4:
+        #     accs['autoencoder'] = [0.17064453125, 0.03505859375, 0.00390625, 0.000234375, 0.0, 0.0]
+        # if channel_parameters['channel_k'] == 8:
+        #     accs['autoencoder'] = [0.03015625, 0.00234375, 7.8125e-05, 0.0, 0.0, 0.0]
     else:
-        accs['autoencoder'] = [0.1699609375, 0.05806640625, 0.01875, 0.00599609375, 0.0017578125]
+        accs['autoencoder'] = [0.48138671875, 0.224609375, 0.082265625, 0.028125, 0.00951171875]
 
     for i in range(0, len(ebno_range)):
         ae_covert_acc, bob_acc, willie_acc = evaluate(ebno=ebno_range[i])
@@ -370,26 +369,26 @@ def eval_rate_change():
             'm': [None]
         },
         'autoencoder_covert': {
-            'c': ['blue', 'tab:olive', 'tab:orange'],
+            'c': ['blue', 'green', 'red'],
             'l': ['solid', 'dashdot', 'dotted'],
-            'm': ['v', '<', 'd']
+            'm': ['o', '<', 'd']
         },
         'bob': {
-            'c': ['red', 'tab:olive', 'tab:orange'],
+            'c': ['blue', 'green', 'red'],
             'l': ['solid', 'dashdot', 'dotted'],
-            'm': ['v', '<', 'd']
+            'm': ['o', '<', 'd']
         },
         'willie': {
-            'c': ['green', 'tab:olive', 'tab:orange'],
+            'c': ['blue', 'green', 'red'],
             'l': ['solid', 'dashdot', 'dotted'],
             'm': [None, None, None]
         }
     }
 
     if channel_parameters['channel_type'] == 'awgn':
-        ebno_range = list(frange(-4, 5, 1))
+        ebno_range = list(frange(-4, 9, 1))
     elif channel_parameters['channel_type'] == 'rician':
-        ebno_range = list(frange(-5, 22, 5))
+        ebno_range = list(frange(0, 22, 5))
     else:
         ebno_range = list(frange(0, 22, 5))
 
@@ -419,12 +418,12 @@ def eval_rate_change():
                 plot_x = list(ebno_range)
                 plot_y = accs[x][i]
             elif x == 'autoencoder_covert':
-                plot_label = "AE (" + str(model_parameters['n_channel']) + "," + str(
+                plot_label = "User (" + str(model_parameters['n_channel']) + "," + str(
                     model_parameters['k']) + ") — Alice (" + str(model_parameters['n_channel']) + "," + str(rates[i]) + ")"
                 plot_x = list(ebno_range)
                 plot_y = accs[x][i]
             elif x == 'autoencoder':
-                plot_label = "AE (" + str(model_parameters['n_channel']) + "," + str(
+                plot_label = "User (" + str(model_parameters['n_channel']) + "," + str(
                     model_parameters['k']) + ")"
                 plot_x = list(ebno_range)
                 plot_y = accs[x]
@@ -440,9 +439,9 @@ def eval_rate_change():
 
                 if x == 'autoencoder_covert' or x == 'bob':
                     plt.yscale('log')
-                    plt.legend(loc="lower left", ncol=1, fontsize=16)
+                    plt.legend(loc="lower left", ncol=1, fontsize=18)
                 else:
-                    plt.legend(loc="upper left", ncol=1, fontsize=16)
+                    plt.legend(loc="upper left", ncol=1, fontsize=18)
 
                 plt.xlabel("$E_{b}/N_{0}$ (dB)", fontsize=16)
                 if x == 'autoencoder_covert' or x == 'bob':
@@ -451,8 +450,8 @@ def eval_rate_change():
                     plt.ylabel('Accuracy', fontsize=16)
 
                 plt.grid()
-                plt.xticks(fontsize=14)
-                plt.yticks(fontsize=14)
+                plt.xticks(fontsize=18)
+                plt.yticks(fontsize=18)
                 plt.tight_layout()
 
 
@@ -541,8 +540,8 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
 '''
     Run training or evaluation
 '''
-run_train()
+# run_train()
 # run_eval()
 
 # eval_constellation(s=1, save=False)
-# eval_rate_change()
+eval_rate_change()
