@@ -1,25 +1,8 @@
-\begin{figure*}[thp]
-	\center
-	\begin{subfigure}{0.7\textwidth}
-		\includegraphics[width=\linewidth]{figs/system_architecture}
-	\end{subfigure}
-	\\
-	\caption{Overall architecture of our system model in the single-user scenario. The UserTX uses an encoder network to encode binary messages into a vector of signals. Alice also transmits her covert signals into the shared channel. After passing through the channel, the UserRX extracts the normal message, Bob decodes the covert message, and Willie attempts to distinguish covert and normal signals from the signals. Components controlled by the covert users are colored, while non-controllable parts of the system are gray.)}	
-	\label{fig:system_architecture}
-\end{figure*}
-
-
 \section{System Model}
-\label{s:single-model}
-In this section, we provide an overview of the system and define each actor's role in our system model.
+\label{s:model}
+Our system consists of two types of users: normal users who communicate with each other via autoencoder wireless systems and covert users who aim to establish hidden communication in the system without arousing suspicion from the observer. The communication between normal users can be either single-user, i.e., between a transmitter and a receiver, or multi-user, i.e., between multiple transmitters and a base station receiver.
 
-Our system consists of normal users who communicate with each other via autonencoder wireless systems. This communication can be either single-user, i.e., communication between a single pair of a transmitter and a receiver, or multi-user, i.e., communication between multiple transmitters and a base station receiver. In the single-user setup, we refer to the encoder or the transmitter as UserTX, and to the decoder or the receiver as UserRX. In the multi-user system, on the other hand, there are multiple transmitters (UserTXs) that communicate with a single base station (BaseRX), which acts as a central receiver. These transmitters each use their own encoder network to encode a binary message to a vector of signals. Their networks share no parameters and have no knowledge of other transmitters' messages. Each and every pair of UserTX and BaseRX forms an autoencoder model, with UserTX representing the encoder and BaseRX accounting for the decoder network.
-In both single and multi-user systems, communication begins with UserTX encoding a binary message to a vector of signals using its encoder network. This vector of signals is then transmitted over the channel. We consider three channel models of AWGN, Rayleigh fading, and Rician fading. In the case of the multi-user system, as transmitters send their signals simultaneously over a shared channel, there will be interference at the receiver. In the end, a noisy version of the transmitted signal is received at the receiver side, where UserRX or BaseRX extracts the message(s) by decoding the signals. In the multi-user setup, BaseRX receives the signals from all transmitters using multiple antennas and decodes the messages in the same way UserRX does. The only difference is that BaseRX handles the decoding process not just for one, but for all the transmitters' signals in one pass.
-In the case of fading channels, before the receiver passes the signals to the decoder network, it equalizes them using the channel matrix. This channel matrix is estimated by the receiver in the single-user system and provided to the decoder in the multi-user system. Figures \ref{fig:system_architecture} and \ref{fig:multi_system_architecture} show an overview of our system model in both single-user and multi-user scenarios.
-
-On the other hand, we have the covert user whose objective is to establish hidden communication in the above system without arousing suspicion from the observer. There is a covert sender (Alice) who wants to communicate secretly with her intended receiver (Bob). Bob is an adversary access point, and his existence is no secret to the other entities in the system. However, if anyone tries to secretly communicate with him, the system's observer (Willie) will mitigate their communication and shut it down. Willie listens to all ongoing transmissions on the channel and uses a binary classifier network to determine the likelihood of each signal being covert or normal. Any distortion in the normal signals can alert Willie to the presence of a covert transmission, so Alice must carefully select her covert signals. This means she should not make any noticeable changes to the statistical properties of the channel noise or the other normal signals. The covert signals should also not increase the error rate of the system, as an unexpected increase in the error rate can raise suspicion. We consider Willie to be an integrated module at the receiver of the normal communication system, i.e., UserRX in the single-user and BaseRX in the multi-user system. This way, he can not only detect incoming covert signals but also measure the communication's error rate. We represent all these three roles with DNNs that are put in a training setup similar to GANs. An adversarial training setting as such ensures that the optimal solution is only achieved when all three reach equilibrium at the end of training.
-
-The covert communication starts with Alice using her generative model to embed a confidential message into a covert noise vector. In non-fading channels, Alice merely needs a covert message and a random trigger to produce a covert signal. However, in fading channels, she requires the channel state information of her channel to Bob in the single-user system, and also the channel state information from other users to Bob in the multi-user system. Bob can provide this information to Alice by listening to the broadcasted pilot signals of other transmitters and measuring the channel state. Since Bob's existence need not be hidden, he can freely broadcast this information as an access point. Next, Alice produces the signals and transmits them into the shared channel, irrespective of other users' transmissions. This means that her covert signals should be agnostic to the normal signals. After getting mixed with other users' transmissions and distorted by the channel effects, Bob receives this signal and extracts Alice's message from it. Unlike the receiver or the observer, here we assume that Bob has only one antenna at his receiver. To keep their communication hidden from Willie, Alice and Bob incorporate a statistical undetectability constraint on the produced covert signals by optimizing their transmissions against his network. When Willie's classifier can do almost no better than random guessing in detecting covert and normal signals, we can safely assume that low probability of detection covert communication has been achieved.
+We will start by describing our system model in the single-user case, which simplifies the system by eliminating the complexity of interference between entities. This scenario applies to systems that already handle user interference at higher levels or by using common multiple access techniques, such as Orthogonal Frequency Division Multiple Access (OFDMA), Code Division Multiple Access (CDMA), and Time Division Multiple Access (TDMA) \cite{WALRAND2000305}. Fig. \ref{fig:system_architecture} gives an overview of this case. We then continue with a more complex scenario, the multi-user case, where we have interfering signal transmissions. Fig. \ref{fig:multi_system_architecture} illustrates the multi-user model.
 
 \begin{figure*}[thp]
 	\center
@@ -27,45 +10,75 @@ The covert communication starts with Alice using her generative model to embed a
 		\includegraphics[width=\linewidth]{figs/multi_system_architecture}
 	\end{subfigure}
 	\\
-	\caption{The overall architecture of our system model in the multi-user scenario. Each UserTX separately encodes binary messages into a vector of signals. Meanwhile, Alice transmits her covert signals into the shared channel. After passing through the channel, BaseRX extracts the normal messages, Bob decodes the covert message, and Willie tries to distinguish between covert and normal signals. The colored components in the system are under the control of the covert users, while the gray components are non-controllable parts of the system.}
+	\caption{The overall architecture of our system model in the multi-user scenario. Each UserTX separately encodes binary messages into a vector of signals. Meanwhile, Alice transmits her covert signals into the shared channel. From the signals passed through the channel, BaseRX extracts the normal messages, Bob decodes the covert message, and Willie tries to classify them as covert and normal signals. The colored components in the system are accessible to the covert users, while the gray components are the inaccessible parts of the system.}
 	\label{fig:multi_system_architecture}
 \end{figure*}
 
-\section{GAN-Based Covert Model}
-For a given binary secret message \(m\), Alice first applies a one-hot encoding technique, and then utilizes her generator model to produce a covert noise signal \(Z\). With this stochastic generative model, each covert message is mapped to a set of different covert noise signals instead of a single one. Alice then sends this covert signal to the shared channel, which is accessible to all entities within the system. This covert signal mixes with the signals \(X\) from other normal tranmsitters and forms a mixed covert signal \(\hat{X}\). 
+
+\subsection{Single-User Communication}
+\textbf{Transmitter}: In the single-user case, the encoder or the transmitter is referred to as UserTX, and the decoder or the receiver is referred to as UserRX. These two entities together form our autoencoder-based normal wireless communication system. The normal communication process begins with UserTX encoding a binary message to a vector of signals using its encoder network. This vector of signals is then transmitted to UserRX and gets distorted while passing through the channel.
+
+\textbf{Channel}: We consider three channel models of AWGN, Rayleigh fading, and Rician fading. To set the \textit{Signal to Noise Ratio} (SNR) in the AWGN model, we keep the transmitter's average power at unit power and adjust the noise power accordingly. For the fading channels, we consider a flat-frequency block-fading channel model, where each signal vector (codeword) is assumed to be faded independently.
+
+\textbf{Receiver}: A noisy version of the transmitted signal is received at the receiver side, where UserRX extracts the message by decoding the signals. In the case of fading channels, receiver equalizes the signals before passing them to the decoder network.
+
+\textbf{Equalization}: Using the channel matrix, UserRX equalizes the signals prior to feeding them to the decoder network. The channel matrix is estimated by UserRX using a blind channel estimation technique, by feeding the received signals to a preliminary network to predict the fading coefficients. This network is shown in Fig. \ref{fig:system_architecture} under the \textit{RECEIVERS} section.
+
+\subsection{Multi-User Communication}
+\textbf{Transmitter}: In the multi-user case, multiple transmitters (UserTXs) communicate with a single base station (BaseRX), which serves as the central receiver. Each UserTX uses its own encoder network to encode a binary message to a vector of signals. The transmitters have no knowledge of each other's messages and share no parameters in their networks. Each UserTX and BaseRX pair forms an autoencoder model, with UserTX serving as the encoder and BaseRX as the decoder. After encoding their messages into signals, the transmitters simultaneously send their signals over the channel.
+
+\textbf{Channel}: The multi-user case has the same channel models as described in the single-user case, with the exception that signals experience interference due to simultaneous transmission.
+
+\textbf{Receiver}: BaseRX receives the signals from all the transmitters using multiple antennas after they pass through the channel. It decodes the messages in the same way as the UserRX in the single-user case, but it handles the decoding process for all the transmitters' signals.
+
+\textbf{Equalization}: Similar to the single-user case, BaseRX equalizes the signals before passing them to the decoder networks. However, unlike the single-user receiver, we assume that BaseRX has access to the channel matrix. In practice, BaseRX can use a pilot-based channel estimation technique, which results in a much more accurate estimation of the channel matrix compared to the blind channel estimation used in the single-user case.
+
+\subsection{Covert Communication}
+There is a covert sender (Alice) who wants to communicate secretly with her intended receiver (Bob). Bob's existence is no secret to the other entities in the system and anyone, including the observer (Willie), can see his transmissions. However, when Willie suspects that a covert sender like Alice is communicating with Bob, he becomes alerted. Therefore, the primary goal of our covert users is to maintain Alice's communications covert.
+
+\textbf{Alice}: The covert communication starts with Alice using her generative model to embed a confidential message into a covert signal vector. You can find an overview of Alice's network in Figs. \ref{fig:system_architecture} and \ref{fig:multi_system_architecture} under the \textit{TRANSMITTERS} sections. As illustrated in the plots, in non-fading channels, Alice merely needs a covert message and a random trigger to produce a covert signal. However, in fading channels, she requires the channel state information of her channel to Bob in the single-user case, and also the channel state information from other normal users to Bob in the multi-user case. This information will be provided by Bob, which we will be explained below. After Alice producing the covert signals, she transmits them into the shared channel irrespective of other users' transmissions. This means that her covert signals should be agnostic to the normal signals.
+
+\textbf{Bob}: Unlike the normal receiver or Willie, only uses a single antenna at his receiver. He receives the covert signals that have undergone channel effects and interference from normal users' transmissions. Without any equalization operation, he uses his decoder network to extract Alice's message from the covert signals. Additionally, he provides Alice with his and other users' channel information. He does the first by sending pilot signals to her, and the second by measuring it from the pilot signals sent from normal transmitters to BaseRX and then broadcasting it to her. As we mentioned earlier, Bob's existence need not be hidden and him broadcasting this information or pilot signals poses no risk to Alice's secrecy, who is supposed to remain covert.
+
+\textbf{Willie}: Willie listens to all ongoing transmissions on the channel and uses a binary classifier network to determine the likelihood of each signal being covert or normal. Any distortion in the normal signals can alert Willie to the presence of a covert transmission, so Alice must carefully select her covert signals. This means she should not make noticeable changes to the statistical properties of the channel noise or other normal signals. The covert signals should also not increase the system's error rate, as an unexpected increase in the error rate can raise suspicion. We consider Willie to be an integrated module at the receiver of the normal communication system, i.e., UserRX in the single-user and BaseRX in the multi-user case. This way, he can not only detect incoming covert signals but also measure the communication's error rate.
+
+We represent the roles of Alice, Bob, and Willie with DNNs in a training setup similar to GANs. This adversarial training setting ensures that the optimal solution is achieved only when all three reach equilibrium at the end of training.
+
+\section{GAN-Based Covert Design}
+For a given binary secret message \(m\), Alice first applies a one-hot encoding technique, and then utilizes her generator model to produce a covert signal \(Z\). With this stochastic generative model, each time a different covert signal is generated for the same message. Alice then sends this covert signal to the shared channel, which is accessible to all entities within the system. This covert signal mixes with the signals \(X\) from other normal tranmsitters and forms a mixed covert signal \(\hat{X}\). 
 
 \begin{equation}
 	\hat{X} = X + Z.
 \end{equation}
 
-As previously mentioned, we consider three channel models: AWGN, Rayleigh fading, and Rician fading. Therefore, there will be three different channel outputs for these three channel models. We use a mapping function \(\mathcal{C}(\cdot)\) to express each of these channels' outputs. Since signals in the multi-user system also experience interference, we express single-user and multi-user channel's outputs separately.
+As previously mentioned, we consider three channel models: AWGN, Rayleigh fading, and Rician fading. Therefore, there will be three different channel outputs for these three channel models. We use a mapping function \(\mathcal{C}(\cdot)\) to express each of these channels' outputs. Since signals in the multi-user case also experience interference, we express single-user and multi-user channel's outputs separately.
 
-\textit{AWGN Channel Output}: For the AWGN channel model, the signal received at the receiver carries the channel's noise effect \(N \sim \mathcal{N}(0, \sigma^2)\). Consequently, the channel function \(\mathcal{C}(\cdot)\) and the final covert signal \(\hat{Y}\) in the single-use system can be represented as:
+\textit{AWGN Channel Output}: For the AWGN channel model, the signal received at the receiver carries the channel's noise effect \(N \sim \mathcal{N}(0, \sigma^2)\). Consequently, the channel function \(\mathcal{C}(\cdot)\) and the final covert signal \(\hat{Y}\) in the single-user case can be represented as:
 \begin{equation}
 	\hat{Y} = \mathcal{C}(\hat{X}) = X + Z + N.
 \end{equation}
-For the multi-user system, signals also get distorted by the channel interference effect. This is due to the multiple transmitters sending their signals at the same time. Consequently, the resulting covert signal can be denoted as:
+For the multi-user case the covert signal can be denoted as:
 \begin{equation}
-	 \hat{Y} = \mathcal{C}(\hat{X}) = \sum^{i \in U}X_i + Z + N.
+	 \hat{Y} = \mathcal{C}(\hat{X}) = \sum_{i \in U}X_i + Z + N.
 \end{equation}
 where \(U\) is the set that contains all transmitters.
 
-\textit{Rayleigh and Rician Fading Channel Outputs}: We consider a flat-frequency block-fading channel model for Rayleigh and Rician fading, where each signal vector (codeword) is assumed to be faded independently. Let \(H_{\mathcal{U}}\) be the fading coefficient for the signal vector \(X\), and \(H_{\mathcal{A}}\) be the fading coefficient for Alice's signal. The channel function \(\mathcal{C}(\cdot)\) and the resulting covert signal \(\hat{Y}\) in the single-user system are given by:
+\textit{Rayleigh and Rician Fading Channel Outputs}: In Rayleigh and Rician fading channels, signals are subject to the fading effect. Let \(H_{\mathcal{U}}\) be the fading coefficient for the signal vector \(X\), and \(H_{\mathcal{A}}\) be the fading coefficient for Alice's signal. The channel function \(\mathcal{C}(\cdot)\) and the resulting covert signal \(\hat{Y}\) in the single-user case are given by:
 \begin{equation}
 	\hat{Y} = \mathcal{C}(\hat{X}) = (H_{\mathcal{U}} \cdot X) + (H_{\mathcal{A}} \cdot Z) + N.
 \end{equation}
 
-In the multi-user case, the final covert signal including the channel interference can be written as:
+In the multi-user case, the received covert signal including the channel interference can be written as:
 \begin{equation}
-	\hat{Y} = \mathcal{C}(\hat{X}) = \sum^{i \in U}(H_{\mathcal{U}_i} \cdot X_i) + (H_{\mathcal{A}} \cdot Z) + N.
+	\hat{Y} = \mathcal{C}(\hat{X}) = \sum_{i \in U}(H_{\mathcal{U}_i} \cdot X_i) + (H_{\mathcal{A}} \cdot Z) + N.
 \end{equation}
 
-On the receiving end, Bob receives the distorted covert signal \(\hat{Y}\) and uses his decoder network to reconstruct the covert message \(\hat{m}\).
+On the receiving end, Bob receives the covert signal \(\hat{Y}\) and uses his decoder network to reconstruct the covert message \(\hat{m}\).
 
-Willie's network captures the statistical properties of signals transmitted over the channel. Its objective is to classify sequences of normal signals \(Y\) and covert signals \(\hat{Y}\) while providing useful feedback to Alice during training. This feedback helps Alice modify the produced covert signals such that they are indistinguishable from the normally transmitted signals. This ensures that when the model is deployed in a real communication setup, it is highly unlikely for any observer to detect the covert transmissions.
+Willie's network is designed to classify sequences of normal signals \(Y\) and covert signals \(\hat{Y}\) In order to ensure that the covert signals remain indistinguishable, Alice must generate them in such a way that Willie's network classifies them as normal signals. To achieve this, Alice requires access to the classifier used by Willie's network. However, this is not feasible in a real-world scenario. Therefore, Alice and Bob perform a black-box attack against Willie's network using a substitute binary classifier. Previous studies have shown that adversarial attacks against one model can be effective on another model, even if the two models have different training sets and architectures \cite{papernot2016transferability}. Willie's substitute network will be used to provide feedback to Alice during training, helping her modify the produced covert signals to make them indistinguishable from normally transmitted signals. This ensures that when the model is deployed in a real communication setup, it is highly unlikely that any observer will detect the covert transmissions.
 
 \subsection{General Formulation}
-\textbf{Reliability}: The first objective of our covert model is to enable reliable covert communication. In order to achieve this, Bob needs to be able to accurately decode the covert messages that Alice sends through the covert signals \(\hat{Y}\). As mentioned earlier, Alice employs a generative model to produce covert noise signals that correspond to the covert messages. Let \(\Theta_{\mathcal{A}}(\cdot)\) be the underlying function of Alice's generative model that takes a random trigger \(t \sim \mathcal{N}(0, 1)\), a covert message \(m\), the channel coefficients from Alice to Bob \(H_{\mathcal{A}}\), and in the multi-user system, the channel matrix \(H_{\mathcal{U}}\) and produces a covert signal \(Z\). The corresponding covert signal can be denoted as \(Z_{m, t} = \Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}\footnotemark[1]), H_{\mathcal{U}}\footnotemark[2])\)). Let  \(\Theta_{\mathcal{B}}(\cdot)\) be the underlying function of the decoder network that Bob uses to reconstruct the covert message \(\hat{m}\). Then the reliability of communication between Alice and Bob is achieved using the following loss function:
+\textbf{Reliability}: The first objective of our covert model is to enable reliable covert communication. In order to achieve this, Bob needs to be able to accurately decode the covert messages sent by Alice. As mentioned earlier, Alice employs a generative model to produce covert signals that correspond to the covert message. Let \(\Theta_{\mathcal{A}}(\cdot)\) be the underlying function of Alice's generative model that takes a random trigger \(t \sim \mathcal{N}(0, 1)\), a covert message \(m\), the channel coefficients from Alice to Bob \(H_{\mathcal{A}}\), and in the multi-user case, the channel matrix \(H_{\mathcal{U}}\) and produces a covert signal \(Z\). The corresponding covert signal can be denoted as \(Z_{m, t} = \Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}\footnotemark[1]), H_{\mathcal{U}}\footnotemark[2])\)). Let  \(\Theta_{\mathcal{B}}(\cdot)\) be the underlying function of the decoder network that Bob uses to reconstruct the covert message \(\hat{m}\). Then the reliability of communication between Alice and Bob is achieved using the following loss function:
 \begin{equation}
 	\begin{aligned} \label{bob_loss}
 	\mathcal{L}_{\mathcal{B}} & = \mathbb{E}_{m}[\mathcal{H}(\hat{m}, m)] \\
@@ -74,48 +87,48 @@ Willie's network captures the statistical properties of signals transmitted over
 	& = \mathbb{E}_{m}[\mathcal{H}(\Theta_{\mathcal{B}}(\mathcal{C}(\Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}) + X)), m)].
 	\end{aligned}
 \end{equation}
-For the multi-user system, this equation is written as:
+For the multi-user case, this equation is written as:
 \begin{equation}
 	\begin{aligned}
 		\mathcal{L}_{\mathcal{B}} & = \mathbb{E}_{m}[\mathcal{H}(\hat{m}, m)] \\
 		& = \mathbb{E}_{m}[\mathcal{H}(\Theta_{\mathcal{B}}(\mathcal{C}(\Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}, H_{\mathcal{U}}) + X)), m)].
 	\end{aligned}
 \end{equation}
-The equation above uses the cross-entropy function \(\mathcal{H}(\cdot)\) to measure the difference between the probability of the reconstructed covert message \(\hat{m}\) nd the actual covert message \(m\). This equation can be used to optimize the networks of both Alice and Bob by freezing one or the other's network parameters iteratively.
+The equation above uses the cross-entropy function \(\mathcal{H}(\cdot)\) to measure the difference between the probability of the reconstructed covert message \(\hat{m}\) and the actual covert message \(m\). This equation can be used to optimize the networks of both Alice and Bob by freezing one or the other's network parameters iteratively.
 
-\footnotetext[1]{This is an extra input parameter that is only used in the systems with fading channel.}
-\footnotetext[2]{This is an extra input parameter that is only used in the multi-user system with fading channel.}
+\footnotetext[1]{Parameter for fading channel only.}
+\footnotetext[2]{Parameter used only in multi-user fading channel.}
 
-\textbf{Low Interference}: Although (\ref{bob_loss}) ensures communication accuracy, it is also necessary to ensure that the generated perturbations do not negatively impact normal communication between UserTX and UserRX. Otherwise, this could alert Willie to abnormal activity. To address this, we add a constraint that minimizes UserRX's loss function during Alice's training. In a single-user system, we can express this constraint as follows:
+\textbf{Low Interference}: While (\ref{bob_loss}) ensures communication accuracy, we also need to ensure that the generated perturbations do not negatively impact normal communication between UserTX and UserRX. Otherwise, this could alert Willie to abnormal activity. To address this, we add a constraint that minimizes UserRX's loss function during Alice's training. In a single-user system, we can express this constraint as follows:
 \begin{equation}
 	\begin{aligned} \label{alice_user_loss}
 	\mathcal{L}_{\mathcal{U}} & = \mathbb{E}_{m}[\mathcal{H}(\hat{s}, s)] \\
 	& = \mathbb{E}_{m}[\mathcal{H}(\Theta_{\mathcal{U}}(\hat{Y}), s)] \\
-	& = \mathbb{E}_{m}[\mathcal{H}(\Theta_{\mathcal{U}}(\mathcal{C}(Z + X)), s)] \\
+	& = \mathbb{E}_{m}[\mathcal{H}(\Theta_{\mathcal{U}}(\mathcal{C}(\hat{X})), s)] \\
 	& = \mathbb{E}_{m}[\mathcal{H}(\Theta_{\mathcal{U}}(\mathcal{C}(\Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}) + X)), s)].
 	\end{aligned}
 \end{equation}
 where \(\Theta_{\mathcal{U}}(\cdot)\) refers to UserRX's decoder network function. It is important to note that during this training, UserRX's decoder network is frozen and only Alice's parameters will be updated.
 
-For the multi-user system, since we have multiple transmitters sending signals, we need to minimize BaseRX's loss function over all individual transmitters' signals. Thus, equation \ref{alice_user_loss} is rewritten as follows:
+For the multi-user case, since we have multiple transmitters sending signals, we need to minimize BaseRX's loss function over all individual transmitters' signals. Thus, equation \ref{alice_user_loss} is rewritten as follows:
 \begin{equation}
 	\begin{aligned} \label{multi_alice_user_loss}
-		\mathcal{L}_{\mathcal{U}} & = \sum^{i \in U}\mathbb{E}_{m}[\mathcal{H}(\hat{s}_i, s_i)] \\
-		= \sum^{i \in U} & 
+		\mathcal{L}_{\mathcal{U}} & = \sum_{i \in U}\mathbb{E}_{m}[\mathcal{H}(\hat{s}_i, s_i)] \\
+		= \sum_{i \in U} & 
 			\mathbb{E}_{m}[\mathcal{H}
 			((\Theta_{\mathcal{U}}(\mathcal{C}(\Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}, H_{\mathcal{U}}) + X_i),  H_{\mathcal{U}}), s_i)].
 	\end{aligned}
 \end{equation}
 
 \begin{algorithm}[tp!]
-	\caption{Optimizing covert models algorithm}\label{alg:cap}
+	\caption{Training covert models algorithm}\label{alg:train}
 	\small
 	\begin{algorithmic}
 		\State $X \gets$ normal signals data
 		\State $S, M \gets$ normal and covert messages sets
-		\State $\Theta_{\mathcal{A}}, \Theta_{\mathcal{B}}, \Theta_{\mathcal{W}} \gets$ Alice, Bob, and Willie network functions
-		\State $\Theta_{\mathcal{U}} \gets$ UserRX decoder network function
-		\State $\mathcal{H} \gets$ cross entropy function
+		\State $\Theta_{\mathcal{A}}, \Theta_{\mathcal{B}}, \Theta_{\mathcal{W}} \gets$ Alice, Bob, and Willie networks
+		\State $\Theta_{\mathcal{U}} \gets$ UserRX decoder network
+		\State $\mathcal{H} \gets$ cross entropy 
 		\State $\mathcal{C} \gets$ channel mapping function
 		\For{epoch $ep \in \{1 \ldots n_{epochs}$\}}
 		\State $t \sim \mathcal{N}(0, 1)$
@@ -131,32 +144,24 @@ For the multi-user system, since we have multiple transmitters sending signals, 
 	\end{algorithmic}
 \end{algorithm}
 
-\textbf{Undetectability}: In our model, Willie acts as a critic network, similar to what is known as a discriminator in GAN models \cite{goodfellow2014generative}. The so-called real and fake samples in GANs' discriminator training process here are mapped to normal and covert signals, respectively. For the single-user system, we use the following loss function to optimize Willie's network that classifies covert and normal signals:
+\textbf{Undetectability}: In our model, Willie acts as a critic network, similar to what is known as a discriminator in GAN models \cite{goodfellow2014generative}. The so-called real and fake samples in GANs' discriminator training process here are mapped to normal and covert signals, respectively. For the single-user case, we use the following loss function to optimize Willie's network that classifies covert and normal signals:
 \begin{equation}
 	\begin{aligned} \label{willie_loss}
-	\mathcal{L}_{\mathcal{W}} & = \mathbb{E}_{m}[\mathcal{H}(\hat{y}, y)] \\
+	\mathcal{L}_{\mathcal{W}} & = \mathbb{E}_{m}[\mathcal{H}(\hat{Y}, Y)] \\
 	& = \mathbb{E}_{m}[\mathcal{H}(\mathcal{C}(\hat{X}), \mathcal{C}(X))] \\
 	& = \mathbb{E}_{m}[\mathcal{H}(\mathcal{C}(\Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}) + X), \mathcal{C}(X))].
 	\end{aligned}
 \end{equation}
-where \(\mathcal{H}(\cdot)\) is the binary cross entropy between the covert signals \(\hat{Y}\) and the normal signals \(Y\). For the multi-user system, we need to optimize the Willie's network over all the transmitters' outputs.
+where \(\mathcal{H}(\cdot)\) is the binary cross entropy between the predicted outputs for the covert signals \(\hat{Y}\) or the normal signals \(Y\) and their actual outputs. For the multi-user case, we need to optimize the Willie's network over all the transmitters' outputs.
 
 \begin{equation}
 	\begin{aligned} \label{multi_willie_loss}
 		\mathcal{L}_{\mathcal{W}} & = 
-		\sum^{i \in U} \mathbb{E}_{m}[H(\hat{Y}, Y)] \\
-		& = \sum^{i \in U}
+		\sum_{i \in U} \mathbb{E}_{m}[H(\hat{Y}, Y)] \\
+		& = \sum_{i \in U}
 			\mathbb{E}_{m}[\mathcal{H}(\mathcal{C}(\Theta_{\mathcal{A}}(m, t, H_{\mathcal{A}}, H_{\mathcal{U}}) + X), \mathcal{C}(X))].
 	\end{aligned}
 \end{equation}
-
-This white-box adversarial training against Alice's network ensures that Willie's network will be adequately trained to distinguish between covert and normal signals. On the other hand, we do not want the covert signals produced by Alice to deviate from the statistical properties of the normal signals on the channel, as this would increase the likelihood of the observer detecting and mitigating the covert communication. To achieve this undetectability property, we use Willie's network to act as a discriminator network in Alice's optimization function. In other words, Alice's training against this network aims to maximize Willie's uncertainty about his predictions. This regularizer helps Alice and Bob form their covert communication in a way that is indistinguishable from the actual channel's noise, yet understandable by both. Overall, Alice's loss function can be expressed as a weighted sum of these three objectives:
-\begin{equation}
-	\begin{array}{l} \label{alice_loss}
-	\mathcal{L}_{\mathcal{A}} = \lambda_{\mathcal{B}} \mathcal{L}_{\mathcal{B}} + \lambda_{\mathcal{U}} \mathcal{L}_{\mathcal{U}} - \lambda_{\mathcal{W}} \mathcal{L}_{\mathcal{W}}.
-\end{array}
-\end{equation}
-where \(\lambda_{\mathcal{B}}\), \(\lambda_{\mathcal{U}}\), and \(\lambda_{\mathcal{W}}\) are hyperparameters that determine the relative importance of the different objectives in Alice's loss function. The algorithmic steps involved in training our covert models are summarized in Algorithm \ref{alg:cap}
 
 \begin{figure*}[!tp]
 	\center
@@ -172,12 +177,21 @@ where \(\lambda_{\mathcal{B}}\), \(\lambda_{\mathcal{U}}\), and \(\lambda_{\math
 		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
 		\caption{Rayleigh fading channel}	
 	\end{subfigure}
-	\caption{Autoencoders' performance in terms of BLER over a range of SNR values is evaluated in our single-user system. The models are trained over AWGN, Rayleigh, and Rician fading channels for a set of parameters that have the same data rate.}
+	\caption{Autoencoders' performance in terms of BLER over a range of SNR values is evaluated in our single-user case. The models are trained over AWGN, Rayleigh, and Rician fading channels for a set of parameters that have the same data rate.}
 	\label{fig:autoencoder_bler}
 \end{figure*}
 
+This white-box adversarial training against Alice's network ensures that Willie's network will be adequately trained to distinguish between covert and normal signals. On the other hand, we do not want the covert signals produced by Alice to deviate from the statistical properties of the normal signals on the channel, as this would increase the likelihood of the observer detecting and mitigating the covert communication. To achieve this undetectability property, we use Willie's network to act as a discriminator network in Alice's optimization function. In other words, Alice's training against this network aims to maximize Willie's uncertainty about his predictions. This regularizer helps Alice forms their covert communication in a way that is indistinguishable from the actual channel's noise, yet understandable by Bob. Overall, Alice's loss function can be expressed as a weighted sum of these three objectives:
+\begin{equation}
+	\begin{array}{l} \label{alice_loss}
+	\mathcal{L}_{\mathcal{A}} = \lambda_{\mathcal{B}} \mathcal{L}_{\mathcal{B}} + \lambda_{\mathcal{U}} \mathcal{L}_{\mathcal{U}} - \lambda_{\mathcal{W}} \mathcal{L}_{\mathcal{W}}.
+\end{array}
+\end{equation}
+where \(\lambda_{\mathcal{B}}\), \(\lambda_{\mathcal{U}}\), and \(\lambda_{\mathcal{W}}\) are hyperparameters that determine the relative importance of the different objectives in Alice's loss function. The algorithmic steps involved in training our covert models are summarized in Algorithm \ref{alg:train}
+
+
 \subsection{Neural Network Architecture}
-\textbf{User's Autoencoder Network}: The autoencoder model takes in a binary message \(s\) of size \(k\) bits and outputs a reconstructed version of it, denoted by \(\hat{s}\). The encoder maps the message to a vector of signals of size \(2 \times n\), where \(n\) is the number of channel uses, using one-hot encoding. Since there are multiple encoders in the multi-user system, the resulting vector will have a size of \(n_{tx} \times (2 \times n)\). The signals generated from the encoder are then passed to the channel mapping function, which incorporates the channel noise and interference effects. When the system is single-user and there is fading in the channel model, the receiver side utilizes the two layers of parameter estimation and transformation to equalize the signals. We apply a simple transformation function that divides signals by the channel fading coefficients estimated via the parameter estimation layer. Note that more complex transformation functions can be used, as described in \cite{o2017introduction}; however, optimizing the performance of the autoencoder model is out of the scope of this article. For the multi-user system, the decoder is provided with channel coefficients as input. This enables BaseRX to use the zero-forcing technique \cite{garg2010wireless} to equalize the received signals. In the case of a single-user system, UserRX utilizes its decoder network to reconstruct the message. However, in the multi-user system, BaseRX receives signals from all transmitters and simultaneously decodes them. This is achieved by first passing the signals to a pre-decoder network and then using separate decoders at the final layers.
+\textbf{User's Autoencoder Network}: The autoencoder model takes in a binary message \(s\) of size \(k\) bits and outputs a reconstructed version of it, denoted by \(\hat{s}\). The encoder maps the message to a vector of signals of size \(2 \times n\), where \(n\) is the number of channel uses, using one-hot encoding. Since there are multiple encoders in the multi-user case, the resulting vector will have a size of \(n_{tx} \times (2 \times n)\). The signals generated from the encoder then pass through the channel, where the channel mapping function applies the channel's effects. When the system is single-user and there is fading in the channel model, the receiver side utilizes the two layers of parameter estimation and transformation to equalize the signals. We apply a simple transformation function that divides signals by the channel fading coefficients estimated via the parameter estimation layer. Note that more complex transformation functions can be used, as described in \cite{o2017introduction}; however, optimizing the performance of the autoencoder model is out of the scope of this article. For the multi-user case, the decoder is provided with channel coefficients as input. This enables BaseRX to use the zero-forcing technique \cite{garg2010wireless} to equalize the received signals. In the case of a single-user system, UserRX utilizes its decoder network to reconstruct the message. However, in the multi-user case, BaseRX receives signals from all transmitters and simultaneously decodes them. This is achieved by first passing the signals to a pre-decoder network and then using separate decoders at the final layers.
 
 
 \textbf{Alice's Network}: Alice first transforms a covert message \(m\) to its corresponding one-hot encoding representation, where each message belongs to a unique class. She then uses a random trigger \(t\) to randomize the process by which the covert noise signal \(Z\) is produced, along with the channel coefficients \(H_{\mathcal{A}}\) and \(H_{\mathcal{U}}\). For Alice's generator model, we use multiple dense layers with ReLU and Tanh activation functions. The first layer acts as an embedding layer, enlarging the input's domain space. The subsequent fully connected layers extract useful features and perform the encoding process. Finally, the last layer performs a dimension transformation, ensuring that the generated covert signal \(Z\) complies with the dimension of the normal signal \(X\) on the channel. 
@@ -186,4 +200,4 @@ where \(\lambda_{\mathcal{B}}\), \(\lambda_{\mathcal{U}}\), and \(\lambda_{\math
 \textbf{Bob's Network}: Bob receives the covert signal \(\hat{Y}\) that has been affected by the channel, and he feeds it through his decoder network to extract the secret message. Bob's network is more sophisticated than Alice's, as decoding such a distorted signal is a much more complex task. The received message first goes through a wide dense layer with a Tanh activation function, which increases the input's feature space. The data then passes through multiple 1-Dimensional Convolutional (1D Conv) layers, which learn the coding that Alice has developed to encode the covert messages. We have found that using 1D Conv layers helps Bob and Alice achieve better consistency in the accuracy of their communication, especially when the channel model is more complicated (i.e., when there is also fading in the channel). The rest of Bob's decoder network consists of two dense layers that remap the learned feature space to the covert message domain space. As with UserRX's and BaseRX's decoder networks, Bob eventually predicts the covert message by performing a classification on the received signal.
 
 
-\textbf{Willie's Network}: Willie's task is to distinguish between the normal signal  \(Y\) and the covert  signal \(\hat{Y}\). To achieve this, he uses a neural network with the same architecture as Bob's, except for the last layer, which has a Sigmoid activation function instead of Softmax. The network takes both normal and covert signals as inputs and outputs a confidence probability \(P\) indicating the likelihood of the signal being normal. Using the same network architecture for both Bob and Willie ensures a fair competition between them, as they have the same capacity for training.
+\textbf{Willie's Network}: Willie's task is to distinguish between the normal signal  \(Y\) and the covert  signal \(\hat{Y}\). To achieve this, he uses a neural network with the same architecture as Bob's, except for the last layer, which has a Sigmoid activation function instead of Softmax. The network takes both normal and covert signals as inputs and outputs a confidence probability \(P\) indicating the likelihood of the signal being normal. Using the same network architecture for both Bob and Willie ensures a fair competition between them, as they have the same capacity for learning.
