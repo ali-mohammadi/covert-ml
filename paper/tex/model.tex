@@ -163,24 +163,6 @@ where \(\mathcal{H}(\cdot)\) is the binary cross entropy between the predicted o
 	\end{aligned}
 \end{equation}
 
-\begin{figure*}[!tp]
-	\center
-	\begin{subfigure}{0.28\textwidth}
-		\includegraphics[width=\linewidth]{figs/autoencoder_bler_awgn}
-		\caption{AWGN channel}
-	\end{subfigure}
-	\begin{subfigure}{0.28\textwidth}
-		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rician}
-		\caption{Rician fading channel}	
-	\end{subfigure}
-	\begin{subfigure}{0.28\textwidth}
-		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
-		\caption{Rayleigh fading channel}	
-	\end{subfigure}
-	\caption{Autoencoders' performance in terms of BLER over a range of SNR values is evaluated in our single-user case. The models are trained over AWGN, Rayleigh, and Rician fading channels for a set of parameters that have the same data rate.}
-	\label{fig:autoencoder_bler}
-\end{figure*}
-
 This white-box adversarial training against Alice's network ensures that Willie's network will be adequately trained to distinguish between covert and normal signals. On the other hand, we do not want the covert signals produced by Alice to deviate from the statistical properties of the normal signals on the channel, as this would increase the likelihood of the observer detecting and mitigating the covert communication. To achieve this undetectability property, we use Willie's network to act as a discriminator network in Alice's optimization function. In other words, Alice's training against this network aims to maximize Willie's uncertainty about his predictions. This regularizer helps Alice forms their covert communication in a way that is indistinguishable from the actual channel's noise, yet understandable by Bob. Overall, Alice's loss function can be expressed as a weighted sum of these three objectives:
 \begin{equation}
 	\begin{array}{l} \label{alice_loss}
@@ -199,5 +181,22 @@ where \(\lambda_{\mathcal{B}}\), \(\lambda_{\mathcal{U}}\), and \(\lambda_{\math
 
 \textbf{Bob's Network}: Bob receives the covert signal \(\hat{Y}\) that has been affected by the channel, and he feeds it through his decoder network to extract the secret message. Bob's network is more sophisticated than Alice's, as decoding such a distorted signal is a much more complex task. The received message first goes through a wide dense layer with a Tanh activation function, which increases the input's feature space. The data then passes through multiple 1-Dimensional Convolutional (1D Conv) layers, which learn the coding that Alice has developed to encode the covert messages. We have found that using 1D Conv layers helps Bob and Alice achieve better consistency in the accuracy of their communication, especially when the channel model is more complicated (i.e., when there is also fading in the channel). The rest of Bob's decoder network consists of two dense layers that remap the learned feature space to the covert message domain space. As with UserRX's and BaseRX's decoder networks, Bob eventually predicts the covert message by performing a classification on the received signal.
 
-
 \textbf{Willie's Network}: Willie's task is to distinguish between the normal signal  \(Y\) and the covert  signal \(\hat{Y}\). To achieve this, he uses a neural network with the same architecture as Bob's, except for the last layer, which has a Sigmoid activation function instead of Softmax. The network takes both normal and covert signals as inputs and outputs a confidence probability \(P\) indicating the likelihood of the signal being normal. Using the same network architecture for both Bob and Willie ensures a fair competition between them, as they have the same capacity for learning.
+
+\begin{figure*}[!tp]
+	\center
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/autoencoder_bler_awgn}
+		\caption{AWGN channel}
+	\end{subfigure}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rician}
+		\caption{Rician fading channel}	
+	\end{subfigure}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
+		\caption{Rayleigh fading channel}	
+	\end{subfigure}
+	\caption{Autoencoders' performance in terms of BLER over a range of SNR values is evaluated in our single-user case. The models are trained over AWGN, Rayleigh, and Rician fading channels for a set of parameters that have the same data rate.}
+	\label{fig:autoencoder_bler}
+\end{figure*}
