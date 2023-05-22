@@ -815,7 +815,7 @@ def eval_nuser_change():
     if channel_parameters['channel_type'] == 'awgn':
         ebno_range = list(frange(-4, 9, 1.5))
     elif channel_parameters['channel_type'] == 'rician':
-        ebno_range = list(frange(-5, 22, 5))
+        ebno_range = list(frange(0, 22, 5))
     else:
         ebno_range = list(frange(0, 22, 5))
 

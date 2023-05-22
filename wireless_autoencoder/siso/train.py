@@ -140,7 +140,7 @@ def eval_parameters():
 '''
     Run training or evaluation
 '''
-# run_train()
-run_eval()
+# run_train(save=False)
+# run_eval()
 # eval_parameters()
 

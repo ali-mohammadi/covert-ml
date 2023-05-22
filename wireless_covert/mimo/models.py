@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import sys
 
-from wireless_covert.mimo.parameters import covert_parameters
 from wireless_autoencoder.mimo.parameters import model_parameters
+from wireless_covert.mimo.parameters import covert_parameters
 
 if covert_parameters['device'] == 'auto':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -68,8 +68,6 @@ class Alice(nn.Module):
         )
 
     def forward(self, x, m, h=None, ha=None):
-        if ha is None:
-            raise TypeError("ha is None!")
         m_one_hot_sparse = torch.sparse.torch.eye(covert_parameters['m']).to(device)
         m_one_hot = m_one_hot_sparse.index_select(dim=0, index=m).to(device)
 
@@ -80,7 +78,7 @@ class Alice(nn.Module):
         # norm_signal = (covert_parameters['n_channel'] ** 0.5) * (encoded_signal / encoded_signal.norm(dim=-1)[:, None])
         # norm_signal = norm_signal / (2 * covert_parameters['r'] * ebno ** 0.5)
 
-        if h is not None:
+        if h is not None and ha is not None:
             h = torch.view_as_real(h)
             h = h.view(-1, 2 * model_parameters['n_user'] * model_parameters['n_user'])
             ha = torch.view_as_real(ha).squeeze().to(device)
@@ -94,6 +92,10 @@ class Alice(nn.Module):
 class Willie(nn.Module):
     def __init__(self):
         super(Willie, self).__init__()
+        self.pre_net = nn.Sequential(
+            nn.Linear(covert_parameters['n_channel'] * 2 + 2 * model_parameters['n_user'], covert_parameters['n_channel'] * 2),
+            nn.Tanh(),
+        )
         self.net = nn.Sequential(
             nn.Linear(covert_parameters['n_channel'] * 2, covert_parameters['n_channel'] * 2),
             nn.Tanh(),
@@ -117,8 +119,14 @@ class Willie(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, x):
-        return self.net(x)
+    def forward(self, x, h=None):
+        if h is not None:
+            h = torch.view_as_real(h).view(-1, 2 * model_parameters['n_user']).to(device)
+            m = torch.cat([x, h], dim=1).to(device)
+            t = self.pre_net(m)
+        else:
+            t = x
+        return self.net(t)
 
 
 class Bob(nn.Module):

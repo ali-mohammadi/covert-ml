@@ -1,4 +1,5 @@
 import datetime
+import sys
 
 import torch
 # torch.set_default_dtype(torch.float64)
@@ -18,7 +19,6 @@ from models import Alice, Bob, Willie, device
 from helpers import frange, accuracies_chart, plot_constellation, reset_grads, discriminator_accuracy, \
     classifier_accuracy
 
-assert system_parameters['system_type'] == 'mimo'
 
 decoder_model = None
 
@@ -33,8 +33,7 @@ def initialize():
                 'channel_type'] + '/' + str(model_parameters['n_user']) + '-user/wireless_autoencoder(' + str(
                 model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_train.pt')
         for i in range(model_parameters['n_user']):
-            AE = Wireless_Autoencoder()
-            AE.index = i + 1
+            AE = Wireless_Autoencoder(model_parameters['m'], model_parameters['n_channel'], i + 1)
             AE.load()
             AE.eval()
             if torch.get_default_dtype() == torch.float32:
@@ -141,24 +140,41 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         '''
         if channel_parameters['channel_type'] == 'awgn':
             covert_parameters['channel_k'] = None
-            covert_parameters['ebno'] = torch.randint(0, 12, (1,))
+            covert_parameters['ebno'] = torch.randint(0, 10, (1,))
+        elif channel_parameters['channel_type'] == 'rician':
+            covert_parameters['ebno'] = torch.randint(0, 20, (1,))
         else:
             covert_parameters['channel_k'] = None
-            covert_parameters['ebno'] = torch.randint(10, 25, (1,))
+            covert_parameters['ebno'] = torch.randint(10, 30, (1,))
             # covert_parameters['ebno'] = channel_parameters['ebno']
 
         if channel_parameters['channel_type'] == 'rayleigh':
-            h = {'w': torch.randn((x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
-                                  dtype=torch.cfloat).to(device),
+            h = {
                  'u': torch.randn((x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
                                   dtype=torch.cfloat).to(device),
                  'b': torch.randn((x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
                                   dtype=torch.cfloat).to(device),
-                 'aw': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device),
                  'au': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device),
-                 'ab': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)}
+                 'ab': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
+            }
+        elif channel_parameters['channel_type'] == 'rician':
+            h_mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+            h_std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+            h = {
+                'u': torch.normal(h_mean, h_std, (x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
+                                 dtype=torch.cfloat).to(device),
+                'b': torch.normal(h_mean, h_std, (x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
+                                 dtype=torch.cfloat).to(device),
+                'au': torch.normal(h_mean, h_std, (x.size()[0], 1), dtype=torch.cfloat).to(device),
+                'ab': torch.normal(h_mean, h_std, (x.size()[0], 1), dtype=torch.cfloat).to(device)
+            }
         else:
-            h = None
+            h = {
+                 'u': None,
+                 'b': None,
+                 'au': None,
+                 'ab': None
+            }
 
         '''
             Train Willie
@@ -166,9 +182,9 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
         alice_output = A(z, m, h['b'], h['ab'])
-        if channel_parameters['channel_type'] == 'rayleigh':
+        if channel_parameters['channel_type'] == 'rayleigh' or channel_parameters['channel_type'] == 'rician':
             alice_output = AEs[0].channel(alice_output, channel_parameters['channel_type'], ebno=None,
-                           h=h['aw'])
+                           h=h['au'])
             # alice_output = alice_output.unsqueeze(1)
             # alice_output = torch.concat(
             #     (alice_output, torch.zeros(x.size()[0], x.size()[1] - 1, x.size()[2]).to(device)), dim=1)
@@ -184,11 +200,11 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
                     AEs[i].channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno']))
             else:
                 willie_output_normal = W(
-                    AEs[i].channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], h=h['w'])[:, i, :])
+                    AEs[i].channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], h=h['u'])[:, i, :], h=h['u'][:, i, :])
 
             if channel_parameters['channel_type'] == 'awgn':
                 willie_output_covert = W(
-                    AEs[i].channel(alice_output + x, channel_parameters['channel_type'],
+                    AEs[i].channel(x + alice_output, channel_parameters['channel_type'],
                                    ebno=covert_parameters['ebno']))
             else:
                 # willie_output_covert = W(
@@ -197,11 +213,11 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
 
                 willie_output_covert = W(
                     AEs[i].channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'],
-                                   h=h['w'])[:, i, :] + alice_output)
+                                   h=h['u'])[:, i, :] + alice_output, h=h['u'][:, i, :])
 
             willie_loss_ind.append(
                 w_criterion(willie_output_normal, normal_labels) + w_criterion(willie_output_covert, covert_labels))
-
+            break
         willie_loss = sum(willie_loss_ind)
 
 
@@ -217,7 +233,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         alice_output_w = A(z, m, h['b'], h['ab'])
         if channel_parameters['channel_type'] != 'awgn':
             alice_output_w = AEs[0].channel(alice_output_w, channel_parameters['channel_type'], ebno=None,
-                                          h=h['aw'])
+                                          h=h['au'])
             # alice_output = alice_output.unsqueeze(1)
             # alice_output = torch.concat(
             #     (alice_output, torch.zeros(x.size()[0], x.size()[1] - 1, x.size()[2]).to(device)), dim=1)
@@ -227,7 +243,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         for i in range(model_parameters['n_user']):
             if channel_parameters['channel_type'] == 'awgn':
                 willie_output = W(
-                    AEs[i].channel(alice_output + x, channel_parameters['channel_type'],
+                    AEs[i].channel(x + alice_output_w, channel_parameters['channel_type'],
                                    ebno=covert_parameters['ebno']))
 
             else:
@@ -237,9 +253,10 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
 
                 willie_output = W(
                     AEs[i].channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'],
-                                   h=h['w'])[:, i, :] + alice_output_w)
+                                   h=h['u'])[:, i, :] + alice_output_w, h=h['u'][:, i, :])
 
             willie_loss_ind.append(w_criterion(willie_output, normal_labels))
+            break
 
         willie_dloss = sum(willie_loss_ind)
 
@@ -251,7 +268,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         for i in range(model_parameters['n_user']):
             if channel_parameters['channel_type'] == 'awgn':
                 bob_outputs.append(B(
-                    AEs[i].channel(alice_output + x, channel_parameters['channel_type'],
+                    AEs[i].channel(alice_output_b + x, channel_parameters['channel_type'],
                                    ebno=covert_parameters['ebno'])))
             else:
                 # bob_outputs.append(B(
@@ -272,7 +289,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         if channel_parameters['channel_type'] == 'awgn':
             alice_outputs = []
             for i in range(model_parameters['n_user']):
-                alice_outputs.append(AEs[i].channel(alice_output + x, channel_parameters['channel_type'],
+                alice_outputs.append(AEs[i].channel(alice_output_u + x, channel_parameters['channel_type'],
                                                     ebno=covert_parameters['ebno']))
 
             alice_output = torch.stack(alice_outputs)
@@ -338,7 +355,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
         alice_output = A(z, m, h['b'], h['ab'])
-        if channel_parameters['channel_type'] == 'rayleigh':
+        if channel_parameters['channel_type'] == 'rayleigh' or channel_parameters['channel_type'] == 'rician':
             alice_output = AEs[0].channel(alice_output, channel_parameters['channel_type'], ebno=None,
                                           h=h['ab'])
             # alice_output = alice_output.unsqueeze(1)
@@ -381,26 +398,43 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
         else:
             willie_loss, bob_loss, alice_bob_loss, ae_loss = train_batch(x, y, m)
 
-        # if epoch != 0 and epoch % 500 == 0:
-        #     w_optimizer.param_groups[0]['lr'] /= 2
-        #     b_optimizer.param_groups[0]['lr'] /= 2
-        #     a_optimizer.param_groups[0]['lr'] /= 2
+        if epoch != 0 and epoch % 2500 == 0:
+            w_optimizer.param_groups[0]['lr'] /= 10
+            b_optimizer.param_groups[0]['lr'] /= 10
+            a_optimizer.param_groups[0]['lr'] /= 10
 
         if epoch % 10 == 0:
             with torch.no_grad():
                 test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
                 if channel_parameters['channel_type'] == 'rayleigh':
-                    h = {'w': torch.randn((test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
-                                          dtype=torch.cfloat).to(device),
+                    h = {
                          'u': torch.randn((test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
                                           dtype=torch.cfloat).to(device),
                          'b': torch.randn((test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
                                           dtype=torch.cfloat).to(device),
-                         'aw': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
                          'au': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
-                         'ab': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+                         'ab': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)
+                    }
+                elif channel_parameters['channel_type'] == 'rician':
+                    h_mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+                    h_std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+                    h = {
+                        'u': torch.normal(h_mean, h_std,
+                                          (test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
+                                          dtype=torch.cfloat).to(device),
+                        'b': torch.normal(h_mean, h_std,
+                                          (test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
+                                          dtype=torch.cfloat).to(device),
+                        'au': torch.normal(h_mean, h_std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+                        'ab': torch.normal(h_mean, h_std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device)
+                    }
                 else:
-                    h = None
+                    h = {
+                         'u': None,
+                         'b': None,
+                         'au': None,
+                         'ab': None
+                    }
 
                 A.eval()
                 B.eval()
@@ -409,7 +443,7 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
                 alice_output_test = A(test_z, test_m, h['b'], h['ab'])
                 if channel_parameters['channel_type'] != 'awgn':
                     alice_output_test = AEs[0].channel(alice_output_test, channel_parameters['channel_type'], ebno=None,
-                                                  h=h['aw'])
+                                                  h=h['au'])
                     # alice_output_test = alice_output_test.unsqueeze(1)
                     # alice_output_test = torch.concat(
                     #     (alice_output_test,
@@ -428,10 +462,10 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
                         #       :]),
                         #     W(AEs[i].channel(test_x, channel_parameters['channel_type'], h=h)[:, i, :])))
                         willie_accs.append(discriminator_accuracy(
-                            W(AEs[i].channel(test_x, channel_parameters['channel_type'], h=h['w'])[:, i,
-                              :] + alice_output_test),
-                            W(AEs[i].channel(test_x, channel_parameters['channel_type'], h=h['w'])[:, i, :])))
-
+                            W(AEs[i].channel(test_x, channel_parameters['channel_type'], h=h['u'])[:, i,
+                              :] + alice_output_test, h=h['u'][:, i, :]),
+                            W(AEs[i].channel(test_x, channel_parameters['channel_type'], h=h['u'])[:, i, :], h=h['u'][:, i, :])))
+                    break
                 willie_acc = sum(willie_accs) / len(willie_accs)
 
                 alice_output_test = A(test_z, test_m, h['b'], h['ab'])
@@ -527,15 +561,21 @@ def run_train(seed=covert_parameters['seed'], save=True):
 
     if channel_parameters['channel_type'] == "awgn":
         if model_parameters['n_user'] == 2:
-            ae_lambda, bob_lambda, willie_lambda = 0.1, 0.8, 0.6
+            ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.1, 0.8
         if model_parameters['n_user'] == 4:
-            ae_lambda, bob_lambda, willie_lambda = 0.1, 0.8, 0.4
+            ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.2, 0.8
+    elif channel_parameters['channel_type'] == "rician":
+        if model_parameters['n_user'] == 2:
+            ae_lambda, bob_lambda, willie_lambda = 0.1, covert_parameters['m'] * 0.3, 0.7
+        if model_parameters['n_user'] == 4:
+            ae_lambda, bob_lambda, willie_lambda = 0.1, covert_parameters['m'] * 0.4, 0.7
     else:
         if model_parameters['n_user'] == 2:
-            # ae_lambda, bob_lambda, willie_lambda = 0.1, 0.8, 0.6
-            ae_lambda, bob_lambda, willie_lambda = 0.01, 0.8, 0.4
+            ae_lambda, bob_lambda, willie_lambda = 0.01, covert_parameters['m'] * 0.4, 0.7
         if model_parameters['n_user'] == 4:
-            ae_lambda, bob_lambda, willie_lambda = 0.1, 0.8, 0.4
+            ae_lambda, bob_lambda, willie_lambda = 0.01, covert_parameters['m'] * 0.4, 0.7
+
+    # ae_lambda, bob_lambda, willie_lambda = float(sys.argv[2]) / 10, covert_parameters['m'] * float(sys.argv[3]), float(sys.argv[4])
 
     accs, losses = train(models, datasets, lambdas=(ae_lambda, bob_lambda, willie_lambda))
 
@@ -554,7 +594,7 @@ def run_train(seed=covert_parameters['seed'], save=True):
             covert_parameters['k']) + ').pt')
 
     print('Training Time: ' + str(datetime.datetime.now() - time))
-    accuracies_chart(accs)
+    # accuracies_chart(accs)
 
 
 def evaluate(models, datasets, ebno):
@@ -568,17 +608,32 @@ def evaluate(models, datasets, ebno):
     m, test_m = m_ds
 
     if channel_parameters['channel_type'] == 'rayleigh':
-        h = {'w': torch.randn((test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
-                              dtype=torch.cfloat).to(device),
+        h = {
              'u': torch.randn((test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
                               dtype=torch.cfloat).to(device),
              'b': torch.randn((test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
                               dtype=torch.cfloat).to(device),
-             'aw': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
              'au': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
-             'ab': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+             'ab': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)
+        }
+    elif channel_parameters['channel_type'] == 'rician':
+        h_mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+        h_std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+        h = {
+            'u': torch.normal(h_mean, h_std, (test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
+                              dtype=torch.cfloat).to(device),
+            'b': torch.normal(h_mean, h_std, (test_x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
+                              dtype=torch.cfloat).to(device),
+            'au': torch.normal(h_mean, h_std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+            'ab': torch.normal(h_mean, h_std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device)
+        }
     else:
-        h = None
+        h = {
+             'u': None,
+             'b': None,
+             'au': None,
+             'ab': None
+        }
 
     A.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters[
         'channel_type'] + '/' + str(model_parameters['n_user']) + '-user/wireless_covert_alice(' + str(
@@ -596,9 +651,9 @@ def evaluate(models, datasets, ebno):
     test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
     alice_output_test_w = A(test_z, test_m, h['b'], h['ab'])
     alice_output_test_b = A(test_z, test_m, h['b'], h['ab'])
-    if channel_parameters['channel_type'] == 'rayleigh':
+    if channel_parameters['channel_type'] == 'rayleigh' or channel_parameters['channel_type'] == 'rician':
         alice_output_test_w = AEs[0].channel(alice_output_test_w, channel_parameters['channel_type'], ebno=None,
-                                      h=h['aw'])
+                                      h=h['au'])
         alice_output_test_b = AEs[0].channel(alice_output_test_b, channel_parameters['channel_type'], ebno=None,
                                              h=h['ab'])
         # alice_output_test = alice_output_test.unsqueeze(1)
@@ -612,20 +667,20 @@ def evaluate(models, datasets, ebno):
     for i in range(model_parameters['n_user']):
         if channel_parameters['channel_type'] == 'awgn':
             willie_accs.append(discriminator_accuracy(
-                W(AEs[i].channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno)),
+                W(AEs[i].channel(alice_output_test_w + test_x, channel_parameters['channel_type'], ebno=ebno)),
                 W(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno))))
             if i == 0:
                 bob_outputs.append(
-                    B(AEs[i].channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno)))
+                    B(AEs[i].channel(alice_output_test_b + test_x, channel_parameters['channel_type'], ebno=ebno)))
         else:
             # willie_accs.append(discriminator_accuracy(
             #     W(AEs[i].channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno, h=h)[:,
             #       i, :]),
             #     W(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno, h=h)[:, i, :])))
             willie_accs.append(discriminator_accuracy(
-                W(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno, h=h['w'])[:,
-                  i, :] + alice_output_test_w),
-                W(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno, h=h['w'])[:, i, :])))
+                W(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno, h=h['u'])[:,
+                  i, :] + alice_output_test_w, h=h['u'][:, i, :]),
+                W(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno, h=h['u'])[:, i, :], h=h['u'][:, i, :])))
             if i == 0:
                 # bob_outputs.append(
                 #     B(AEs[i].channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno, h=h)[:,
@@ -633,6 +688,7 @@ def evaluate(models, datasets, ebno):
                 bob_outputs.append(
                     B(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno, h=h['b'])[:,
                       i, :] + alice_output_test_b))
+        break
     willie_acc = sum(willie_accs) / len(willie_accs)
     bob_output = torch.sum(torch.stack(bob_outputs), 0)
     bob_acc = classifier_accuracy(bob_output, test_m)
@@ -642,7 +698,7 @@ def evaluate(models, datasets, ebno):
         normal_signal_tests = []
         for i in range(model_parameters['n_user']):
             covert_signal_tests.append(
-                AEs[i].channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno))
+                AEs[i].channel(alice_output_test_b + test_x, channel_parameters['channel_type'], ebno=ebno))
             normal_signal_tests.append(AEs[i].channel(test_x, channel_parameters['channel_type'], ebno=ebno))
 
         covert_signal_test = torch.stack(covert_signal_tests)
@@ -659,12 +715,12 @@ def evaluate(models, datasets, ebno):
         # covert_signal_test = AEs[i].channel(alice_output_test + test_x, channel_parameters['channel_type'],
         #                                     ebno=ebno, h=h)
         alice_output_test_u = A(test_z, test_m, h['b'], h['ab'])
-        if channel_parameters['channel_type'] == 'rayleigh':
+        if channel_parameters['channel_type'] == 'rayleigh' or channel_parameters['channel_type'] == 'rician':
             alice_output_test = AEs[0].channel(alice_output_test_u, channel_parameters['channel_type'], ebno=None,
                                                  h=h['au'])
         covert_signal_test = AEs[0].channel(test_x, channel_parameters['channel_type'],
                                             ebno=ebno, h=h['u']) + alice_output_test.unsqueeze(1)
-        normal_signal_test = AEs[i].channel(test_x, channel_parameters['channel_type'],
+        normal_signal_test = AEs[0].channel(test_x, channel_parameters['channel_type'],
                                             ebno=ebno, h=h['u'])
 
     # ae_acc = classifier_accuracy(AE.decoder_net(normal_signal_test), test_y)
@@ -819,7 +875,12 @@ def run_eval(seed=covert_parameters['seed']):
         plt.grid()
         plt.legend(loc="lower left", ncol=1, fontsize=label_fontsize)
         plt.tight_layout()
-        plt.savefig("results/png/tmp_" + x + '.png')
+        # plt.savefig('results/png/tmp/' + x + '.png')
+        if len(sys.argv) > 1:
+            lambdas = map(float, [sys.argv[2], sys.argv[3], sys.argv[4]])
+            plt.savefig('results/png/tmp/' + str(model_parameters['n_user']) + 'u/' + x + '_' + sys.argv[1] + '_(' + ','.join(str(int(x * 10)) for x in lambdas) + ').png')
+        else:
+            plt.savefig('results/png/tmp/' + x + '.png')
         plt.show()
         plt.close()
 
@@ -854,7 +915,7 @@ def eval_nuser_change():
     if channel_parameters['channel_type'] == 'awgn':
         ebno_range = list(frange(-4, 9, 1.5))
     elif channel_parameters['channel_type'] == 'rician':
-        ebno_range = list(frange(-5, 22, 5))
+        ebno_range = list(frange(0, 22, 5))
     else:
         ebno_range = list(frange(0, 22, 5))
 
@@ -908,15 +969,18 @@ def eval_nuser_change():
 
             if rates[i] == 4:
                 plt.xlim(ebno_range[0], ebno_range[-1])
-
                 if x == 'autoencoder_covert' or x == 'bob':
                     if x == 'autoencoder_covert':
+                        if channel_parameters['channel_type'] == 'rician':
+                            plt.ylim(1e-4, 4e-1)
+                        if channel_parameters['channel_type'] == 'rayleigh':
+                            plt.ylim(5e-3, 6e-1)
                         handles, labels = plt.gca().get_legend_handles_labels()
                         order = [0, 2, 1, 3]
                     plt.yscale('log')
                     if x == 'autoencoder_covert':
                         plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order], loc="lower left",
-                                   ncol=1, fontsize=18)
+                                   ncol=1, fontsize=16)
                     else:
                         plt.legend(loc="lower left",
                                    ncol=1, fontsize=18)
@@ -1031,6 +1095,6 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
     Run training or evaluation
 '''
 # run_train()
-run_eval()
+# run_eval()
 
-# eval_nuser_change()
+eval_nuser_change()

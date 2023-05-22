@@ -3,6 +3,7 @@ import torch.nn as nn
 import sys
 
 from wireless_covert.siso.parameters import covert_parameters
+from shared_parameters import channel_parameters
 
 if covert_parameters['device'] == 'auto':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -27,30 +28,45 @@ class LayerShape(nn.Module):
 class Alice(nn.Module):
     def __init__(self):
         super(Alice, self).__init__()
-        self.encode = nn.Sequential(
-            nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2,
-                      covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2),
-            nn.ReLU(inplace=True),
-            nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2,
-                      covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2 + 4),
-            nn.ReLU(inplace=True),
-            nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2 + 4, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
-            nn.ReLU(inplace=True),
-            nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
-            nn.ReLU(inplace=True),
-            nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * covert_parameters['m']),
-            nn.ReLU(inplace=True),
-            nn.Linear(covert_parameters['n_channel'] * covert_parameters['m'], covert_parameters['n_channel'] * 2),
-            nn.Tanh(),
-        )
+        if channel_parameters['channel_type'] == 'awgn':
+            self.encode = nn.Sequential(
+                nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'], covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * covert_parameters['m']),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * covert_parameters['m'], covert_parameters['n_channel'] * 2),
+                nn.Tanh(),
+            )
+        else:
+            self.encode = nn.Sequential(
+                nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2,
+                          covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * 2 + covert_parameters['m'] + 2,
+                          covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2 + 4),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2 + 4, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * 4 + covert_parameters['m'] * 2, covert_parameters['n_channel'] * covert_parameters['m']),
+                nn.ReLU(inplace=True),
+                nn.Linear(covert_parameters['n_channel'] * covert_parameters['m'], covert_parameters['n_channel'] * 2),
+                nn.Tanh(),
+            )
 
     def forward(self, x, m, h):
         m_one_hot_sparse = torch.sparse.torch.eye(covert_parameters['m']).to(device)
         m_one_hot = m_one_hot_sparse.index_select(dim=0, index=m).to(device)
 
-        fading = torch.view_as_real(h).squeeze().to(device)
+        if h is not None:
+            fading = torch.view_as_real(h).squeeze().to(device)
 
-        encoded_signal = self.encode(torch.cat([x, m_one_hot, fading], dim=1).to(device))
+            encoded_signal = self.encode(torch.cat([x, m_one_hot, fading], dim=1).to(device))
+        else:
+            encoded_signal = self.encode(torch.cat([x, m_one_hot], dim=1).to(device))
         '''
             Keeping covert signals power same as noise
         '''
@@ -65,6 +81,8 @@ class Willie(nn.Module):
     def __init__(self):
         super(Willie, self).__init__()
         self.net = nn.Sequential(
+            # nn.Linear(covert_parameters['n_channel'] * 2 + 2, covert_parameters['n_channel'] * 2 + 2),
+            # nn.Tanh(),
             nn.Linear(covert_parameters['n_channel'] * 2, covert_parameters['n_channel'] * 2),
             nn.Tanh(),
             nn.Unflatten(1, (1, -1)),
@@ -96,7 +114,9 @@ class Willie(nn.Module):
         #     nn.Sigmoid()
         # )
 
-    def forward(self, x):
+    def forward(self, x, h=None):
+        # h = torch.view_as_real(h).view(-1, 2).to(device)
+        # t = torch.concat([x, h], dim=1)
         return self.net(x)
 
 

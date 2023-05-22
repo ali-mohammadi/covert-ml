@@ -2,7 +2,7 @@ from shared_parameters import channel_parameters
 
 covert_parameters = {
     'n_channel': 8,
-    'k': 1,
+    'k': 4,
     'num_epochs': 5000,
     'learning_rate': 1e-3,
     'batch_size': None,

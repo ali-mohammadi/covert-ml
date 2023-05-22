@@ -186,7 +186,7 @@ class Wireless_Autoencoder(nn.Module):
         if channel == 'rayleigh':
             return self.rayleigh(x, r, ebno, h)
         if channel == 'rician':
-            return self.rician(x, r, ebno, k)
+            return self.rician(x, r, ebno, k, h)
         return x
 
     def awgn(self, x, r, ebno):
@@ -230,8 +230,42 @@ class Wireless_Autoencoder(nn.Module):
 
                 output_signal = output_signal[:, 0:-int(channel_parameters['channel_taps'] - 1)]
             else:
-                fading_batch = torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
+                fading_batch = torch.randn((x.size()[0], x.size()[1], x.size()[1]), dtype=torch.cfloat).to(device)
                 output_signal = x * fading_batch
+        else:
+            if ebno is not None:
+                output_signal = h @ x
+            else:
+                output_signal = h * x
+                return torch.view_as_real(output_signal).view(-1, n_channel * 2) + noise
+
+        return torch.view_as_real(output_signal).view(-1, model_parameters['n_user'],
+                                                      n_channel * 2) + noise
+
+    def rician(self, x, r, ebno, k=channel_parameters['channel_k'], h=None):
+        if ebno is not None:
+            ebno = 10.0 ** (ebno / 10.0)
+            noise = torch.randn((x.size()[0], x.size()[2]), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+            noise = noise.unsqueeze(1).to(device)
+        else:
+            noise = torch.zeros(*x.size(), requires_grad=False)
+            noise = noise.to(device)
+
+        if ebno is not None:
+            n_channel = int(x.size()[2] / 2)
+
+            x = x.view((-1, model_parameters['n_user'], n_channel, 2))
+            x = torch.view_as_complex(x)
+        else:
+            n_channel = int(x.size()[1] / 2)
+            x = x.view((-1, n_channel, 2))
+            x = torch.view_as_complex(x)
+
+        if h is None:
+            std = (1 / (k + 1)) ** 0.5
+            mean = (k / 2 * (k + 1)) ** 0.5
+            fading_batch = torch.normal(mean, std, (x.size()[0], x.size()[1], x.size()[1]), dtype=torch.cfloat).to(device)
+            output_signal = x * fading_batch
         else:
             if ebno is not None:
                 output_signal = h @ x

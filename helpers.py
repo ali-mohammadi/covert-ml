@@ -26,21 +26,19 @@ def frange(x, y, jump):
         x += jump
 
 
-'''
-    :param:
-        fd      : Doppler frequency
-        Ts      : sampling period
-        Ns      : number of samples
-        t0      : initial time
-        E0      : channel power
-        phi_N   : initial phase of the maximum doppler frequency sinusoid
-    
-    :return: 
-        h       : complex fading vector
-'''
-
-
 def jakes_flat(fd=926, Ts=1e-6, Ns=1, t0=0, E0=np.sqrt(1), phi_N=0):
+    """
+        :param:
+            fd      : Doppler frequency
+            Ts      : sampling period
+            Ns      : number of samples
+            t0      : initial time
+            E0      : channel power
+            phi_N   : initial phase of the maximum doppler frequency sinusoid
+
+        :return:
+            h       : complex fading vector
+    """
     N0 = 8
     N = 4 * N0 + 2
     wd = 2 * np.pi * fd
@@ -207,7 +205,7 @@ def blers_chart(models, test_dses, decoder_model, manual_seed=None):
     if channel_parameters['channel_type'] == 'rayleigh':
         ebno_range = list(frange(0, 22, 5))
     elif channel_parameters['channel_type'] == 'rician':
-        ebno_range = list(frange(-5, 22, 5))
+        ebno_range = list(frange(0, 22, 5))
     else:
         ebno_range = list(frange(-4, 9, 1.5))
     bers = [[None] * len(ebno_range) for _ in range(model_parameters['n_user'])]
@@ -249,12 +247,18 @@ def blers_chart(models, test_dses, decoder_model, manual_seed=None):
                 encodes = torch.stack(encodes)
                 encodes.transpose_(0, 1)
 
-                h = torch.randn((x.size()[0], model_parameters['n_user'], model_parameters['n_user']),
-                                dtype=torch.cfloat).to(device)
-                signals = []
-                for i in range(model_parameters['n_user']):
-                    signals.append(models[i].channel(encodes, ebno=ebno_range[j], h=h)[:, i, :])
-                signals = torch.stack(signals).transpose(1, 0)
+                if channel_parameters['channel_type'] == 'rayleigh':
+                    h = torch.randn((x.size()[0], model_parameters['n_user'], model_parameters['n_user']), dtype=torch.cfloat).to(device)
+                else:
+                    std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+                    mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+                    h = torch.normal(mean, std, (x.size()[0], model_parameters['n_user'], model_parameters['n_user']), dtype=torch.cfloat).to(device)
+
+                # signals = []
+                # for i in range(model_parameters['n_user']):
+                #     signals.append(models[i].channel(encodes, ebno=ebno_range[j], h=h)[:, i, :])
+                # signals = torch.stack(signals).transpose(1, 0)
+                signals = models[0].channel(encodes, ebno=ebno_range[j], h=h)
 
                 signals = signals.view((-1, model_parameters['n_user'], model_parameters['n_channel'], 2))
                 signals = torch.view_as_complex(signals)
@@ -277,7 +281,7 @@ def blers_chart(models, test_dses, decoder_model, manual_seed=None):
     # print(avg_ber)
     # exit(1)
 
-    if False:
+    if True:
         '''
             Autoencoder saved results for demonstration purposes
         '''
@@ -289,6 +293,15 @@ def blers_chart(models, test_dses, decoder_model, manual_seed=None):
             bers[3] = [0.26044, 0.11938, 0.0413, 0.0135, 0.00454]
             bers[4] = [0.09048828125, 0.0356640625, 0.01224609375, 0.00390625, 0.0012890625]
             bers[5] = [0.169453125, 0.06681640625, 0.02337890625, 0.0073046875, 0.00232421875]
+        elif channel_parameters['channel_type'] == 'rician':
+            # bers = [[], [], [], [], [], []]
+            bers = [[], [], [], []]
+            bers[0] = [0.067451171875, 0.010107421875, 0.002109375, 0.000517578125, 0.000166015625]
+            bers[1] = [0.1316650390625, 0.0232080078125, 0.0035205078125, 0.0008935546875, 0.0003125]
+            bers[2] = [0.04341796875, 0.01439453125, 0.0040234375, 0.00140625, 0.00041015625]
+            bers[3] = [0.08025390625, 0.02673828125, 0.00830078125, 0.00265625, 0.0008984375]
+            # bers[4] = [0.082109375, 0.01890625, 0.00310546875, 0.00080078125, 0.00017578125]
+            # bers[5] = [0.15662109375, 0.0340234375, 0.00615234375, 0.00166015625, 0.0003515625]
         else:
             bers = [[], [], [], []]
             bers[0] = [0.294208984375, 0.202646484375, 0.118037109375, 0.062529296875, 0.0254296875, 0.008779296875, 0.002001953125, 0.000439453125, 1.953125e-05]
@@ -312,10 +325,6 @@ def blers_chart(models, test_dses, decoder_model, manual_seed=None):
             plt.plot(ebno_range, ber, line_styles[index], clip_on=False,
                      label=labels[index], **extra_args)
     else:
-        labels = []
-        for i in range(2):
-            labels[i] = "Autoencoder(" + str(model_parameters['n_channel']) + "," + str(
-                         model_parameters['k']) + ")  " + labels[i]
         plt.xlim(ebno_range[0], ebno_range[-1])
         plt.ylim(min(ber[-1] for ber in bers) / 5, 0.5)
         for index, ber in enumerate(bers):

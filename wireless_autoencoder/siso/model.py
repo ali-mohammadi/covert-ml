@@ -192,19 +192,27 @@ class Wireless_Autoencoder(nn.Module):
 
         return torch.view_as_real(output_signal).view(-1, n_channel * 2) + noise
 
-    def rician(self, x, r, ebno, k=channel_parameters['channel_k']):
-        ebno = 10.0 ** (ebno / 10.0)
-        noise = torch.randn(*x.size(), requires_grad=False) / ((2 * r * ebno) ** 0.5)
-        noise = noise.to(device)
+    def rician(self, x, r, ebno, k=channel_parameters['channel_k'], h=None):
+        if ebno != None:
+            ebno = 10.0 ** (ebno / 10.0)
+            noise = torch.randn(*x.size(), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+            noise = noise.to(device)
+        else:
+            noise = torch.zeros(*x.size(), requires_grad=False)
+            noise = noise.to(device)
 
         n_channel = int(x.size()[1] / 2)
 
         x = x.view((-1, n_channel, 2))
         x = torch.view_as_complex(x)
 
-        std = (1 / (k + 1)) ** 0.5
-        mean = (k / 2 * (k + 1)) ** 0.5
-        fading_batch = torch.normal(mean, std, (x.size()[0], 1), dtype=torch.cfloat).to(device)
+        if h is not None:
+            fading_batch = h
+        else:
+            std = (1 / (k + 1)) ** 0.5
+            mean = (k / 2 * (k + 1)) ** 0.5
+            fading_batch = torch.normal(mean, std, (x.size()[0], 1), dtype=torch.cfloat).to(device)
+        self.fading = fading_batch
 
         return torch.view_as_real(x * fading_batch).view(-1, n_channel * 2) + noise
 
