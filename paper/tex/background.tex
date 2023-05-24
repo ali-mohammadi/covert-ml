@@ -4,7 +4,7 @@
 		\includegraphics[width=\linewidth]{figs/system_architecture}
 	\end{subfigure}
 	\\
-	\caption{Overall architecture of our system model in the single-user scenario. The UserTX uses an encoder network to encode a binary message $s$ into a vector of signals $X$. Alice generates a covert signal vector $Z$ for a covert message $m$. Willie receives both normal $Y$ and covert $\hat{Y}$ signals during training, but during operation performs covert detection on either signal based on covert user activity. Similarly, UserRX extracts the normal messages from either $Y$ or $\hat{Y}$. Bob decodes the covert message from $\hat{Y}$. The colored components are accessible to covert users, while the gray components are inaccessible.}	
+	\caption{Overall architecture of our system model in the single-user scenario. The UserTX uses an encoder network to encode a binary message $s$ into a vector of signals $X$. Alice generates a covert signal vector $Z$ for a covert message $m$. Willie receives both normal $Y$ and covert $\hat{Y}$ signals during training, but at the time of operation, performs covert detection on either signal based on covert user activity. Similarly, UserRX extracts the normal messages from either $Y$ or $\hat{Y}$. Bob decodes the covert message from $\hat{Y}$. The colored components are accessible to covert users, while the gray components are inaccessible.}	
 	\label{fig:system_architecture}
 \end{figure*}
 \section{Autoencoder Wireless Systems}
