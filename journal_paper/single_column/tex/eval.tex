@@ -7,15 +7,15 @@ Our experiments consist of two sections. The first section focuses on evaluating
 
 \begin{figure}[tp!]
 	\centering
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.325\textwidth}
 		\includegraphics[width=\linewidth]{figs/autoencoder_bler_awgn}
 		\caption{AWGN channel}
 	\end{subfigure}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.325\textwidth}
 		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rician}
 		\caption{Rician fading channel}	
 	\end{subfigure}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.325\textwidth}
 		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
 		\caption{Rayleigh fading channel}	
 	\end{subfigure}
@@ -32,15 +32,15 @@ The plot reveals that despite having the same data and coding rate, increasing t
 
 \begin{figure}[tp!]
 	\centering
-	\begin{subfigure}{0.28\linewidth}
+	\begin{subfigure}{0.325\linewidth}
 		\includegraphics[width=\linewidth]{figs/multi_autoencoder_bler_awgn}
 		\caption{AWGN channel}
 	\end{subfigure}
-	\begin{subfigure}{0.28\linewidth}
+	\begin{subfigure}{0.325\linewidth}
 		\includegraphics[width=\linewidth]{figs/multi_autoencoder_bler_rician}
 		\caption{Rician fading channel}	
 	\end{subfigure}
-	\begin{subfigure}{0.28\linewidth}
+	\begin{subfigure}{0.325\linewidth}
 		\includegraphics[width=\linewidth]{figs/multi_autoencoder_bler_rayleigh}
 		\caption{Rayleigh fading channel}	
 	\end{subfigure}
@@ -54,8 +54,8 @@ The results indicate that multi-user autoencoder models can achieve almost simil
 \subsection{Covert Model Performance Evaluation}
 We evaluated the performance of our covert communication models on three different channel models: AWGN, Rayleigh fading, and Rician fading. We used the same training procedure for all settings, but the network architecture of our covert and autoencoder models in the multi-user case differed slightly from that in the single-user setting. Table \ref{table:covert_models_structure} shows these differences.
 
-\begin{algorithm}[bp!]
-	\caption{Optimal SNR range search algorithm}\label{alg:snr_search}
+\begin{algorithm}[tp!]
+	\caption{Optimal SNR Range Search}\label{alg:snr_search}
 	\small
 	\begin{algorithmic}
 		\State $acc_{\mathcal{A, B, W}} \gets$ Alice, Bob, and Willie final training accuracies
@@ -83,13 +83,13 @@ We evaluated the performance of our covert communication models on three differe
 
 We trained our autoencoder network on a fixed SNR value, but observed improved performance in our covert scheme when training on a range of SNR values. To achieve this, we randomly varied the SNR value within a predetermined range after each training epoch. This approach helped maintain accuracy in normal communication for Alice and improved covert message decoding for Bob, particularly in lower SNR conditions. We started with the training SNR used for the autoencoder and gradually expanded the range from both ends until no further improvement was observed. Algorithm \ref{alg:snr_search} outlines this process. In the single-user case, we settled on the ranges of -2dB to 8dB for AWGN, and 10dB to 30dB for both Rayleigh and Rician fading channels. In the multi-user system, the optimal ranges were found to be 0dB to 10dB for AWGN, 0dB to 20dB for Rician, and 10dB to 30dB for Rayleigh channels.
 
-\begin{figure}[bp!]
+\begin{figure}[tp!]
 	\centering
-	\begin{subfigure}{0.24\textwidth}
-		\includegraphics[width=\linewidth]{figs/training_progress}
+	\begin{subfigure}{0.495\textwidth}
+ 		\includegraphics[width=\linewidth]{figs/training_progress}
 		\caption{Single-user case}	
 	\end{subfigure}
-	\begin{subfigure}{0.24\textwidth}
+	\begin{subfigure}{0.495\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_training_progress}
 		\caption{Multi-user case}	
 	\end{subfigure}
@@ -105,19 +105,19 @@ We started our experiments with the single-user case. First, we evaluated our co
 Figs. \ref{fig:awgn_results}, \ref{fig:rayleigh_resutls}, and \ref{fig:rician_resutls} illustrate the performance of our scheme for different covert data rates and how reliable our covert models are at different covert data rates. As we expected, with increasing covert data rates, covert communication becomes more unreliable, its impact on the normal communication increases, and detection becomes easier for Willie. Overall, these plots indicate that sending covert data at high rates makes covert communication unreliable.
 
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_awgn}
 		\caption{User's BLER}
 		\label{fig:awgn_resutls_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/bob_bler_awgn}
 		\caption{Bob's BLER}	
 		\label{fig:awgn_resutls_bob}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/willie_accuracy_awgn}
 		\caption{Willie's accuracy}	
 		\label{fig:awgn_resutls_willie}
@@ -126,19 +126,19 @@ Figs. \ref{fig:awgn_results}, \ref{fig:rayleigh_resutls}, and \ref{fig:rician_re
 	\label{fig:awgn_results}
 \end{figure*}
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rayleigh}
 		\caption{User's BLER}
 		\label{fig:rayleigh_resutls_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/bob_bler_rayleigh}
 		\caption{Bob's BLER}
 		\label{fig:rayleigh_resutls_bob}	
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/willie_accuracy_rayleigh}
 		\caption{Willie's accuracy}
 		\label{fig:rayleigh_resutls_willie}
@@ -147,19 +147,19 @@ Figs. \ref{fig:awgn_results}, \ref{fig:rayleigh_resutls}, and \ref{fig:rician_re
 	\label{fig:rayleigh_resutls}
 \end{figure*}
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rician}
 		\caption{User's BLER}
 		\label{fig:rician_resutls_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/bob_bler_rician}
 		\caption{Bob's BLER}
 		\label{fig:rician_resutls_bob}	
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/willie_accuracy_rician}
 		\caption{Willie's accuracy}
 		\label{fig:rician_resutls_willie}
@@ -177,22 +177,22 @@ After evaluating the reliability of our covert models for different covert data 
 
 Figs. \ref{fig:multi_awgn_results}, \ref{fig:multi_rayleigh_results}, and \ref{fig:multi_rician_results} present our results for 2-user and 4-user systems, demonstrating how the number of users in the system affects our model's performance. For the AWGN channel, we observe that adding more users does not change the model's overall performance. Furthermore, as the number of users increases, there is almost no impact on the normal receivers from the covert transmissions, and Bob and Willie's performances remain almost the same.
 
-However, for the Rayleigh and Rician channels, a degree of freedom effect can be noticed, where increasing number of users makes it more challenging for the covert users to avoid interfering with the ongoing normal communication. As a result, the impact of covert communication on normal users becomes more detrimental with a higher number of users. Unlike in the AWGN channel, adding more users in these cases significantly affects Bob's performance, rendering covert communication practically ineffective. Looking at Figs. \ref{fig:multi_rayleigh_results} and \ref{fig:multi_rician_results}, we can observe a distinct cross-over pattern for the fading channels. Specifically, Figs. \ref{fig:multi_rayleigh_results_ae} and \ref{fig:multi_rician_results_ae} reveal that there is a certain SNR at which the covert communication in the 4-user systems begins to have a greater impact on normal communication compared to the 2-user systems. These SNRs are 10dB and 5db in the Rayleigh and Rician channels, respectively. These points indicate that covert users can no longer communicate reliably without causing interference to normal users. This behavior is even more apparent in Figs. \ref{fig:multi_rayleigh_results_bob} and \ref{fig:multi_rician_results_bob}, which show that Bob's BLER begins to degrade at the same SNR values and eventually plateaus, deviating from the performance of the 2-user system. Likewise, we can see the same pattern in Willie's detection accuracy. Since covert communication has no specific pattern from these points further, Willie is unable to detect it accurately and thereby his detection accuracy remains constant.
+However, for the Rayleigh and Rician channels, a degree of freedom effect can be noticed, where increasing number of users makes it more challenging for the covert users to avoid interfering with the ongoing normal communication. With more users, the impact of covert communication on normal users worsens. Unlike in the AWGN channel, adding more users significantly affects Bob's performance in these cases, making covert communication largely ineffective. Looking at Figs. \ref{fig:multi_rayleigh_results} and \ref{fig:multi_rician_results}, we can observe a distinct cross-over pattern for the fading channels. Specifically, Figs. \ref{fig:multi_rayleigh_results_ae} and \ref{fig:multi_rician_results_ae} reveal that there is a certain SNR at which the covert communication in the 4-user systems begins to have a greater impact on normal communication compared to the 2-user systems. These SNRs are 10dB and 5db in the Rayleigh and Rician channels, respectively. These points indicate that covert users can no longer communicate reliably without interfering with normal users. This is evident in Figs. \ref{fig:multi_rayleigh_results_bob} and \ref{fig:multi_rician_results_bob}, where Bob's BLER starts deteriorating at the same SNR values and eventually levels off, deviating from the performance of the 2-user system. Likewise, we can see the same pattern in Willie's detection accuracy. Since covert communication has no specific pattern from these points further, Willie is unable to detect it accurately and thereby his detection accuracy remains constant.
 
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_awgn}
 		\caption{User's BLER}
 		\label{fig:multi_awgn_results_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_bob_bler_awgn}
 		\caption{Bob's BLER}	
 		\label{fig:multi_awgn_results_bob}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_awgn}
 		\caption{Willie's accuracy}	
 		\label{fig:multi_awgn_results_willie}
@@ -201,19 +201,19 @@ However, for the Rayleigh and Rician channels, a degree of freedom effect can be
 	\label{fig:multi_awgn_results}
 \end{figure*}
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_rayleigh}
 		\caption{User's BLER}
 		\label{fig:multi_rayleigh_results_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_bob_bler_rayleigh}
 		\caption{Bob's BLER}
 		\label{fig:multi_rayleigh_results_bob}	
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_rayleigh}
 		\caption{Willie's accuracy}
 		\label{fig:multi_rayleigh_results_willie}
@@ -222,19 +222,19 @@ However, for the Rayleigh and Rician channels, a degree of freedom effect can be
 	\label{fig:multi_rayleigh_results}
 \end{figure*}
 \begin{figure*}[tp!]
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_rician}
 		\caption{User's BLER}
 		\label{fig:multi_rician_results_ae}
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_bob_bler_rician}
 		\caption{Bob's BLER}
 		\label{fig:multi_rician_results_bob}	
 	\end{subfigure}
 	\hspace*{\fill}
-	\begin{subfigure}{0.28\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_rician}
 		\caption{Willie's accuracy}
 		\label{fig:multi_rician_results_willie}
