@@ -1,8 +1,10 @@
 paper/figs/*.pdf
-paper/main.aux
-paper/main.bbl
-paper/main.blg
-paper/main.log
-paper/main.out
-paper/main.pdf
-paper/main.synctex.gz
+paper/*.*
+!paper/*.tex
+paper/tex/*.*
+!paper/tex/*.tex
+journal_paper/*/figs/*.pdf
+journal_paper/*/*.*
+!journal_paper/*/*.tex
+journal_paper/*/tex/*.*
+!journal_paper/*/tex/*.tex
