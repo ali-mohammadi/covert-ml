@@ -1,0 +1,290 @@
+\section{Experiments and Evaluation}
+\label{s:eval}
+Our experiments consist of two sections. The first section focuses on evaluating the performance of our trained autoencoder wireless networks. These experiments do not involve covert communication and aim to fine-tune the parameters of the autoencoder models for accurate performance in fading environments, in addition to AWGN channels. The second section analyzes the performance of our implemented covert models in single-user and multi-user scenarios, assessing their robustness to various channel models, data rates, and user counts.
+
+\subsection{Base Single-User Autoencoder's Performance}
+\textbf{Methodology}: We implemented an autoencoder communication network for normal communication between UserRX and UserTX. An \(Autoencoder (n, k)\) is a neural network communication model that sends \(k\) bits of data in \(n\) channel uses. To make our results comparable with \cite{o2017introduction}, we chose our default parameters to be 8 and 4 for the number of channel uses and binary message size, respectively. However, we also evaluated our models for two other sets of parameters with the same data rate but different numbers of channel uses. This allowed us to examine how increasing the number of channel uses, or signal dimensionality, would affect communication performance. To train our autoencoder model, we generated two datasets for training and testing by randomly generating binary messages \(s\) of size \(k\). Specifically, we used 8192 random binary messages in the training set and 51200 random binary messages in the test set. We created a much larger dataset for testing to ensure that each signal \(X\) undergoes various channel distortions, providing a more accurate evaluation of the model's performance. We set the learning rate to 0.001 and optimized the model using the Adam optimizer \cite{kingma2014adam}. We used a batch size of 1024 and trained the model for 100 epochs. For the channel configuration, \textbf{we fixed the SNR value during training but evaluated the model's performance over a range of SNRs}. The SNR value for the AWGN channel was set to 4dB, while the values for the Rayleigh and Rician fading channels were 16dB. We chose these SNR values experimentally by training the models on different SNR values and identifying the value on which the model performed best.
+
+\begin{figure}[tp!]
+	\centering
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/autoencoder_bler_awgn}
+		\caption{AWGN channel}
+	\end{subfigure}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rician}
+		\caption{Rician fading channel}	
+	\end{subfigure}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/autoencoder_bler_rayleigh}
+		\caption{Rayleigh fading channel}	
+	\end{subfigure}
+	\caption{Autoencoders' performance in terms of BLER over a range of SNR values is evaluated in our single-user case. The models are trained over AWGN, Rayleigh, and Rician fading channels for a set of parameters that have the same data rate.}
+	\label{fig:autoencoder_bler}
+\end{figure}
+
+\textbf{Results}: Fig. \ref{fig:autoencoder_bler} shows the block error rate (BLER) performance of our trained autoencoder communication models for various sets of parameters across a range of SNR values. The models were trained individually on AWGN, Rayleigh, and Rician fading channels and tested on the same channel they were trained on.
+The plot reveals that despite having the same data and coding rate, increasing the signal dimension slightly enhances the performance of the autoencoder models. This phenomenon was first identified in \cite{o2017introduction}, which demonstrated that autoencoders trained over an AWGN channel can achieve a coding gain by learning a joint coding and modulation scheme. Our results support this finding and suggest that this behavior holds true for autoencoders trained on other channel models as well. However, it should be noted that a comprehensive study of the performance of autoencoder wireless systems for multiple channel types and parameters (n, k) goes beyond the scope of this work and is not the primary focus of this research.
+
+
+\subsection{Base Multi-User Autoencoders' Performance}
+\textbf{Methodology}: In the multi-user case, we have chosen the number of channel uses and the binary message size to be 8 and 4, respectively, as these are our default parameters. There are two reasons for selecting these parameters in this way. First, it allows us to compare our results with those obtained in \cite{o2017introduction}. Second, by having each user communicate at half the rate of BPSK, the results of our 2-user system are roughly comparable to a single-user system at the BPSK rate, while the 4-user system is comparable to a single-user system at the QPSK rate. To generate training and testing sets, we followed the same procedure outlined in the previous section. The remaining parameters, such as learning rate, number of epochs, batch size, and optimization algorithm, are kept the same as in the single-user system. For the channel configuration, we have chosen SNR values of 8dB for the AWGN channel, 16dB for the Rayleigh channel, and 14dB for the Rician channel during training. However, we evaluate our models over a range of SNR values.
+
+\begin{figure}[tp!]
+	\centering
+	\begin{subfigure}{0.28\linewidth}
+		\includegraphics[width=\linewidth]{figs/multi_autoencoder_bler_awgn}
+		\caption{AWGN channel}
+	\end{subfigure}
+	\begin{subfigure}{0.28\linewidth}
+		\includegraphics[width=\linewidth]{figs/multi_autoencoder_bler_rician}
+		\caption{Rician fading channel}	
+	\end{subfigure}
+	\begin{subfigure}{0.28\linewidth}
+		\includegraphics[width=\linewidth]{figs/multi_autoencoder_bler_rayleigh}
+		\caption{Rayleigh fading channel}	
+	\end{subfigure}
+	\caption{The block error rates (BLERs) of our trained autoencoders compared with simulated results for different numbers of users over a range of SNR values in our multi-user case.}
+	\label{fig:multi_autoencoder_bler}
+\end{figure}
+
+\textbf{Results}: The performance of our trained autoencoder-based communication models in terms of block error rate (BLER) for a range of SNR values for different numbers of users is shown in Fig. \ref{fig:multi_autoencoder_bler}. In all charts, the 2-user and 4-user performances are depicted with blue and red colors, respectively, and the results are compared with simulated traditional BPSK and QPSK systems with hard decision decoding.
+The results indicate that multi-user autoencoder models can achieve almost similar performance to their counterparts in the single-user cases when compared data rate-wise. However, we have also observed that while the AWGN and Rician autoencoders outperform their peers, the Rayleigh fading autoencoders do not. We attribute this to the more complex equalization task that the receiver in multi-user cases needs to undertake. This becomes more evident when we compare the results of our trained single-user autoencoders with BPSK and QPSK data rates, which were able to outperform all other results.
+
+\subsection{Covert Model Performance Evaluation}
+We evaluated the performance of our covert communication models on three different channel models: AWGN, Rayleigh fading, and Rician fading. We used the same training procedure for all settings, but the network architecture of our covert and autoencoder models in the multi-user case differed slightly from that in the single-user setting. Table \ref{table:covert_models_structure} shows these differences.
+
+\begin{algorithm}[bp!]
+	\caption{Optimal SNR range search algorithm}\label{alg:snr_search}
+	\small
+	\begin{algorithmic}
+		\State $acc_{\mathcal{A, B, W}} \gets$ Alice, Bob, and Willie final training accuracies
+		\State $p, c \gets$ Previous and current average training accuracies
+		\State $snr_{L, U} \gets$ Optimal lower and upper bounds of the SNR range
+		\State $t \gets L$ Tracking the SNR bound that is expanding
+		\While{true}
+		\State $acc_{\mathcal{A}}, acc_{\mathcal{B}}, acc_{\mathcal{W}} \gets Train(snr_{L}, snr_{U})$
+		\State $c \gets Avg(acc_{\mathcal{A}}, acc_{\mathcal{B}}, acc_{\mathcal{W}})$
+		\If {$c > p$}
+		\State $p \gets c$
+		\State $snr_{t} \gets snr_{t} \pm 1$
+		\Else
+		\If {$t$ is equal $L$}
+		\State $t \gets U$
+		\Else
+		\State \Return $snr_{L, U}$
+		\EndIf
+		\EndIf
+		\EndWhile
+	\end{algorithmic}
+\end{algorithm}
+
+\textbf{Datasets and Hyperparameters}: Since each covert message \(m\) has to be paired with a normal message \(s\), we created the covert model's training and testing sets to have the same number of samples as the autoencoder's. All models were trained for 5000 epochs using the Adam optimizer in an adversarial training setting. We adjusted the importance of each of Alice's objectives by setting \(\lambda_{\mathcal{W}} = 2 \lambda_{\mathcal{B}} = 4 \lambda_{\mathcal{U}}\) for the single-user case, and \(\lambda_{\mathcal{W}} = 3 \lambda_{\mathcal{B}} = 6 \lambda_{\mathcal{U}}\) for the multi-user case in (\ref{alice_loss}). We arrived at these numbers by running a grid search on these parameters. However, our solution is not limited to these parameters, and one can use a different set of parameters to emphasize one specific objective more than the others. In both the single-user and multi-user cases, we started the training with a learning rate of 0.001 for the first 2500 epochs and then made the learning rate ten times smaller for the remaining 2500 epochs. In each epoch, we first updated the parameters of Willie's network using (\ref{willie_loss}), then trained Alice's network for one step using (\ref{alice_loss}), and finally optimized Bob's network based on (\ref{bob_loss}).
+
+We trained our autoencoder network on a fixed SNR value, but observed improved performance in our covert scheme when training on a range of SNR values. To achieve this, we randomly varied the SNR value within a predetermined range after each training epoch. This approach helped maintain accuracy in normal communication for Alice and improved covert message decoding for Bob, particularly in lower SNR conditions. We started with the training SNR used for the autoencoder and gradually expanded the range from both ends until no further improvement was observed. Algorithm \ref{alg:snr_search} outlines this process. In the single-user case, we settled on the ranges of -2dB to 8dB for AWGN, and 10dB to 30dB for both Rayleigh and Rician fading channels. In the multi-user system, the optimal ranges were found to be 0dB to 10dB for AWGN, 0dB to 20dB for Rician, and 10dB to 30dB for Rayleigh channels.
+
+\begin{figure}[bp!]
+	\centering
+	\begin{subfigure}{0.24\textwidth}
+		\includegraphics[width=\linewidth]{figs/training_progress}
+		\caption{Single-user case}	
+	\end{subfigure}
+	\begin{subfigure}{0.24\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_training_progress}
+		\caption{Multi-user case}	
+	\end{subfigure}
+	\caption{Evaluation results of our covert and autoencoder models during the training process show the system reaches a stable point after successful training.}
+	\label{fig:traning_progress}
+\end{figure}
+
+\textbf{Training Procedure}: Fig. \ref{fig:traning_progress} shows the progress of each covert actor's accuracy on the test set during the training process for both single-user and multi-user cases. As the training progresses, Bob gradually learns to decode covert messages \(m\) and establishes reliable communication with Alice. After a few epochs as the covert communication begins to take form and stabilize, the signals start to deviate from their original distribution, which helps Willie to better detect covert signals. When Willie's accuracy increases, the term \(\mathcal{L}_{\mathcal{W}}\) dominates the other two objectives of Alice's loss function in (\ref{alice_loss}). As a result, Alice gradually sacrifices accuracy for undetectability. Soon after, the training process reaches a stable point where neither of the covert models sees any significant improvement in accuracy as the training progresses. At the end of the training, the Users' accuracy remains intact, Bob achieves reliable covert communication accuracy, and Willie stabilizes at around 50$\sim$60\% accuracy, which, for a binary classifier, is very close to random guessing accuracy.
+
+\textbf{Single-User Experiments}: 
+We started our experiments with the single-user case. First, we evaluated our covert models by sending 1 bit of covert data over 8 channel uses and then gradually increased the number of covert bits to see how increasing the covert data rate affected each component of our covert scheme. We used the notations \(Alice (n,k)\), \(Bob (n,k)\), and \(Willlie (n,k)\) to differentiate models with different covert data rates, and their interpretation was the same as that of the autoencoder model.
+
+Figs. \ref{fig:awgn_results}, \ref{fig:rayleigh_resutls}, and \ref{fig:rician_resutls} illustrate the performance of our scheme for different covert data rates and how reliable our covert models are at different covert data rates. As we expected, with increasing covert data rates, covert communication becomes more unreliable, its impact on the normal communication increases, and detection becomes easier for Willie. Overall, these plots indicate that sending covert data at high rates makes covert communication unreliable.
+
+\begin{figure*}[tp!]
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_awgn}
+		\caption{User's BLER}
+		\label{fig:awgn_resutls_ae}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/bob_bler_awgn}
+		\caption{Bob's BLER}	
+		\label{fig:awgn_resutls_bob}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/willie_accuracy_awgn}
+		\caption{Willie's accuracy}	
+		\label{fig:awgn_resutls_willie}
+	\end{subfigure}
+	\caption{Covert models' performance over AWGN channel for different covert data rates on a range of SNRs.}
+	\label{fig:awgn_results}
+\end{figure*}
+\begin{figure*}[tp!]
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rayleigh}
+		\caption{User's BLER}
+		\label{fig:rayleigh_resutls_ae}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/bob_bler_rayleigh}
+		\caption{Bob's BLER}
+		\label{fig:rayleigh_resutls_bob}	
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/willie_accuracy_rayleigh}
+		\caption{Willie's accuracy}
+		\label{fig:rayleigh_resutls_willie}
+	\end{subfigure}
+	\caption{Covert models' performance over Rayleigh channel for different covert data rates on a range of SNRs.}
+	\label{fig:rayleigh_resutls}
+\end{figure*}
+\begin{figure*}[tp!]
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/covert_autoencoder_bler_rician}
+		\caption{User's BLER}
+		\label{fig:rician_resutls_ae}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/bob_bler_rician}
+		\caption{Bob's BLER}
+		\label{fig:rician_resutls_bob}	
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/willie_accuracy_rician}
+		\caption{Willie's accuracy}
+		\label{fig:rician_resutls_willie}
+	\end{subfigure}
+	\caption{Covert models' performance over Rician channel for different covert data rates on a range of SNRs.}
+	\label{fig:rician_resutls}
+\end{figure*}
+
+The plots also reveal how the communication channel affects the performance of each actor. In the AWGN channel, higher covert rates have a relatively smaller impact on the User's BLER, while in the fading channels, their impact is more significant. On the other hand, increasing the covert rate in the fading channels has less effect on the covert communication accuracy compared to the AWGN channel. For Willie, all channels exhibit a similar trend, where higher covert rates are more susceptible to detection.
+
+Through these experiments, we have concluded that the most reliable covert data rate is achieved by sending 1 bit of data over 8 channel uses. Therefore, we will be using these parameters as the default when evaluating our models in the multi-user scenario.
+
+\textbf{Multi-User Experiments}: 
+After evaluating the reliability of our covert models for different covert data rates, we now aim to measure the robustness of our covert scheme against the number of users in the multi-user scenario. To do this, we evaluate our covert models in systems comprising of 2 and 4 users. This will help us understand how adding users, i.e., increasing interference, affects  the performance of our covert models, and whether it has a more significant impact on communication than increasing the covert data rate.
+
+Figs. \ref{fig:multi_awgn_results}, \ref{fig:multi_rayleigh_results}, and \ref{fig:multi_rician_results} present our results for 2-user and 4-user systems, demonstrating how the number of users in the system affects our model's performance. For the AWGN channel, we observe that adding more users does not change the model's overall performance. Furthermore, as the number of users increases, there is almost no impact on the normal receivers from the covert transmissions, and Bob and Willie's performances remain almost the same.
+
+However, for the Rayleigh and Rician channels, a degree of freedom effect can be noticed, where increasing number of users makes it more challenging for the covert users to avoid interfering with the ongoing normal communication. As a result, the impact of covert communication on normal users becomes more detrimental with a higher number of users. Unlike in the AWGN channel, adding more users in these cases significantly affects Bob's performance, rendering covert communication practically ineffective. Looking at Figs. \ref{fig:multi_rayleigh_results} and \ref{fig:multi_rician_results}, we can observe a distinct cross-over pattern for the fading channels. Specifically, Figs. \ref{fig:multi_rayleigh_results_ae} and \ref{fig:multi_rician_results_ae} reveal that there is a certain SNR at which the covert communication in the 4-user systems begins to have a greater impact on normal communication compared to the 2-user systems. These SNRs are 10dB and 5db in the Rayleigh and Rician channels, respectively. These points indicate that covert users can no longer communicate reliably without causing interference to normal users. This behavior is even more apparent in Figs. \ref{fig:multi_rayleigh_results_bob} and \ref{fig:multi_rician_results_bob}, which show that Bob's BLER begins to degrade at the same SNR values and eventually plateaus, deviating from the performance of the 2-user system. Likewise, we can see the same pattern in Willie's detection accuracy. Since covert communication has no specific pattern from these points further, Willie is unable to detect it accurately and thereby his detection accuracy remains constant.
+
+\begin{figure*}[tp!]
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_awgn}
+		\caption{User's BLER}
+		\label{fig:multi_awgn_results_ae}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_bob_bler_awgn}
+		\caption{Bob's BLER}	
+		\label{fig:multi_awgn_results_bob}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_awgn}
+		\caption{Willie's accuracy}	
+		\label{fig:multi_awgn_results_willie}
+	\end{subfigure}
+	\caption{Multi-user covert models' performances over AWGN channel for systems with different numbers of users over a range of SNRs.}
+	\label{fig:multi_awgn_results}
+\end{figure*}
+\begin{figure*}[tp!]
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_rayleigh}
+		\caption{User's BLER}
+		\label{fig:multi_rayleigh_results_ae}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_bob_bler_rayleigh}
+		\caption{Bob's BLER}
+		\label{fig:multi_rayleigh_results_bob}	
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_rayleigh}
+		\caption{Willie's accuracy}
+		\label{fig:multi_rayleigh_results_willie}
+	\end{subfigure}
+	\caption{Multi-user covert models' performances over Rayleigh channel for systems with different number of users over a range of SNRs.}
+	\label{fig:multi_rayleigh_results}
+\end{figure*}
+\begin{figure*}[tp!]
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_covert_autoencoder_bler_rician}
+		\caption{User's BLER}
+		\label{fig:multi_rician_results_ae}
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_bob_bler_rician}
+		\caption{Bob's BLER}
+		\label{fig:multi_rician_results_bob}	
+	\end{subfigure}
+	\hspace*{\fill}
+	\begin{subfigure}{0.28\textwidth}
+		\includegraphics[width=\linewidth]{figs/multi_willie_accuracy_rician}
+		\caption{Willie's accuracy}
+		\label{fig:multi_rician_results_willie}
+	\end{subfigure}
+	\caption{Multi-user covert models' performances over Rician channel for systems with different number of users over a range of SNRs.}
+	\label{fig:multi_rician_results}
+\end{figure*}
+
+
+\textbf{Undetectability}: Willie's detection accuracy can be found in Figs. \ref{fig:awgn_resutls_willie}, \ref{fig:rayleigh_resutls_willie}, and \ref{fig:rician_resutls_willie} for the single-user case, and in Figs. \ref{fig:multi_awgn_results_willie}, \ref{fig:multi_rayleigh_results_willie}, \ref{fig:multi_rician_results_willie} for the multi-user case. His detection performance is evaluated over a range of SNR values for detecting signals as covert and normal. In the single-user experiments, we observe that as the covert data rate increases, the covert communication becomes more easily detectable. In the multi-user case, we cannot directly compare Willie's accuracy for different numbers of users because covert users are unable to establish their covert communication in the fading channels in systems with 4 users. However, the results from the AWGN channel indicate that Willie's accuracy remains roughly the same as we increase the number of users.
+
+\textbf{Constellation Diagrams}: Fig. \ref{fig:constellation} compares the constellation clouds of covert and normal signals for AWGN, Rayleigh, and Rician fading channels in the single-user system. The encoder's output symbols are represented as black circle points on the constellation diagrams. The red cloud represents the scattering of covert signals after passing through the channel, while the green cloud represents this for normal signals. Each chart has 8 black points corresponding to the 8 channel uses. To maintain consistency in Willie's accuracy and Bob's error rate across channel models, we set SNR values to 6dB (AWGN), 15dB (Rayleigh fading), and 16dB (Rician fading). This ensured comparable detection probabilities and a covert communication BLER below \(10^{-1}\). This area of operation provided Alice and Bob relative reliability in their covert communication while maintaining their covertness.
+Looking at these figures, the signal constellation diagrams before and after applying our covert model are very similar, showing that to a first-order, Alice has learned to cloak the covert signals into the channel's noise distribution.
+
+
+\begin{figure*}[tp!]
+	\center
+	\begin{subfigure}{0.325\linewidth}
+		\begin{subfigure}{0.48\textwidth}
+			\includegraphics[width=\linewidth]{figs/awgn_normal_constellation}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.48\textwidth}
+			\includegraphics[width=\linewidth]{figs/awgn_covert_constellation}
+		\end{subfigure}
+		\caption{AWGN channel}
+		\label{fig:awgn_constellation}
+	\end{subfigure}
+	\begin{subfigure}{0.325\linewidth}
+		\begin{subfigure}{0.48\textwidth}
+			\includegraphics[width=\linewidth]{figs/rayleigh_normal_constellation}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.48\textwidth}
+			\includegraphics[width=\linewidth]{figs/rayleigh_covert_constellation}
+		\end{subfigure}
+		\caption{Rayleigh fading channel}
+		\label{fig:rayleigh_constellation}
+	\end{subfigure}
+	\begin{subfigure}{0.325\linewidth}
+		\begin{subfigure}{0.48\textwidth}
+			\includegraphics[width=\linewidth]{figs/rician_normal_constellation}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.48\textwidth}
+			\includegraphics[width=\linewidth]{figs/rician_covert_constellation}
+		\end{subfigure}
+		\caption{Rician fading channel}
+		\label{fig:rician_constellation}
+	\end{subfigure}
+	\caption{Comparing AWGN, Rayleigh and Rician fading channels constellation clouds of a sample signal. The green clouds show the constellation before the covert communication and the red clouds show it after.}
+	\label{fig:constellation}
+\end{figure*}

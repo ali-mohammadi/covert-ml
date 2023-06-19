@@ -1,0 +1,57 @@
+\documentclass[lettersize,journal]{IEEEtran}
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmicx, algorithm, algpseudocode}
+\usepackage{array}
+%\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage[font=small]{caption}
+\usepackage[labelformat=simple,font=scriptsize]{subcaption}
+\renewcommand\thesubfigure{(\alph{subfigure})}
+%\usepackage{textcomp}
+%\usepackage{stfloats}
+\usepackage{adjustbox}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{cite}
+% updated with editorial comments 8/9/2021
+
+\begin{document}
+
+\title{Covert Communication in \\Autoencoder Wireless Systems}
+
+\author{Ali~Mohamamdi~Teshnizi,~\IEEEmembership{Student Member,~IEEE,}
+	Majid~Ghaderi,~\IEEEmembership{Member,~IEEE,}
+	and~Dennis~Goeckel,~\IEEEmembership{Fellow,~IEEE}% <-this % stops a space
+}
+
+% The paper headers
+\markboth{Journal of Cognitive Communications and Networking,~Vol.~9, No.~3, June~2023}%
+{Shell \MakeLowercase{\textit{et al.}}: A Sample Article Using IEEEtran.cls for IEEE Journals}
+
+%\IEEEpubid{0000--0000/00\$00.00~\copyright~2021 IEEE}
+% Remember, if you use this you must call \IEEEpubidadjcol in the second
+% column for its text to clear the IEEEpubid mark.
+
+\maketitle
+
+\input{tex/abs}
+\input{tex/intro}
+\input{tex/related}
+\input{tex/background}
+\input{tex/model}
+\input{tex/eval}
+\input{tex/conc}
+
+\bibliographystyle{IEEEtran}
+% argument is your BibTeX string definitions and bibliography database(s)
+\bibliography{bib/main}
+
+\input{tex/bio}
+
+\vfill
+
+\input{tex/appen}
+
+\end{document}
+
+
