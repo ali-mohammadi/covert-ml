@@ -32,6 +32,16 @@ class Wireless_Decoder(nn.Module):
         in_channel = model_parameters['m']
         compressed_dimension = model_parameters['n_user'] * model_parameters['n_channel'] * 2
 
+        # self.parameter_est = nn.Sequential(
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.Tanh(),
+        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
+        #     nn.Tanh(),
+        #     # nn.Linear(compressed_dimension * 2, compressed_dimension),
+        #     # nn.Tanh(),
+        #     nn.Linear(compressed_dimension * 2, int(compressed_dimension * model_parameters['n_user'] / model_parameters['n_channel'])),
+        # )
+
         self.predecoder = nn.Sequential(
             nn.Linear(compressed_dimension, compressed_dimension),
             nn.Tanh(),
@@ -45,12 +55,21 @@ class Wireless_Decoder(nn.Module):
             nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
             nn.Tanh(),
             nn.Flatten(),
-            nn.Linear(model_parameters['n_channel'] * (model_parameters['n_user'] * model_parameters['n_channel'] - 4), compressed_dimension * 2),
+            nn.Linear(model_parameters['n_channel'] * (int(compressed_dimension / 2) - (4 if model_parameters['n_channel'] > 4 else 3)), compressed_dimension * 2),
             # nn.Linear(12, compressed_dimension * 2),
             nn.Tanh(),
             nn.Linear(compressed_dimension * 2, compressed_dimension * 2),
             nn.Tanh()
         )
+
+        # self.predecoder = nn.Sequential(
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.Tanh(),
+        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
+        #     nn.Tanh(),
+        #     nn.Linear(compressed_dimension * 2, compressed_dimension * 2),
+        #     nn.Tanh()
+        # )
 
         self.decoder = nn.ModuleList([nn.Sequential(
                 nn.Linear(compressed_dimension * 2, compressed_dimension),
@@ -59,6 +78,14 @@ class Wireless_Decoder(nn.Module):
             ).to(device) for _ in range(model_parameters['n_user'])])
 
     def forward(self, x, i):
+        if False:
+            h = self.parameter_est(x)
+            h = h.view(-1, model_parameters['n_user'], model_parameters['n_user'], 2)
+            h = torch.view_as_complex(h)
+            x = x.view((-1, model_parameters['n_user'], model_parameters['n_channel'], 2))
+            x = torch.view_as_complex(x)
+            t = torch.inverse(h) @ x
+            x = torch.view_as_real(t).view(t.size()[0], -1)
         x = self.predecoder(x)
         return self.decoder[i](x)
 
@@ -83,6 +110,18 @@ class Wireless_Autoencoder(nn.Module):
         self.in_channel = in_channel
         self.compressed_dimension = compressed_dimension
         compressed_dimension = 2 * compressed_dimension
+
+        '''
+            Encoder with Dense layers
+        '''
+        # self.encoder = nn.Sequential(
+        #     nn.Linear(in_channel, compressed_dimension),
+        #     nn.ELU(),
+        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
+        #     nn.ReLU(),
+        #     nn.Linear(compressed_dimension * 2, compressed_dimension),
+        #     nn.BatchNorm1d(compressed_dimension, affine=False)
+        # )
 
         self.encoder = nn.Sequential(
             nn.Linear(in_channel, in_channel),

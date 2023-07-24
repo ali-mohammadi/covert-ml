@@ -1,7 +1,7 @@
 import os
 
 channel_parameters = {
-    'channel_type': 'rician',
+    'channel_type': 'rayleigh',
     'channel_k': 1,  # Used only when channel type is Rician
     'channel_samples': None,
     'channel_taps': None,

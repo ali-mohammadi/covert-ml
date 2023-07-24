@@ -17,8 +17,8 @@ if channel_parameters['channel_type'] == 'rayleigh':
         'seed': 0,
         'device': 'auto'
     }
-    if model_parameters['n_user'] == 2:
-        model_parameters['seed'] = 2
+    if model_parameters['n_user'] == 2: # 2, 1, 4
+        model_parameters['seed'] = 4
     if model_parameters['n_user'] == 4:
         model_parameters['seed'] = 3
 
@@ -54,13 +54,13 @@ if channel_parameters['channel_type'] == 'awgn':
         'train_size': 1024 * 8,
         'test_size': 1024 * 50,
         'batch_size': 1024,
-        'num_epochs': 100,
+        'num_epochs': 200,
         'learning_rate': 1e-3,
         'seed': 0,
         'device': 'auto'
     }
     if model_parameters['n_user'] == 2:
-        model_parameters['seed'] = 1
+        model_parameters['seed'] = 4
     if model_parameters['n_user'] == 4:
         model_parameters['seed'] = 1
 

@@ -44,7 +44,7 @@ class Wireless_Autoencoder(nn.Module):
         #     nn.Linear(in_channel, compressed_dimension),
         #     nn.ELU(),
         #     nn.Linear(compressed_dimension, compressed_dimension * 2),
-        #     nn.ELU(),
+        #     nn.ReLU(),
         #     nn.Linear(compressed_dimension * 2, compressed_dimension),
         #     nn.BatchNorm1d(compressed_dimension, affine=False)
         # )
@@ -91,7 +91,7 @@ class Wireless_Autoencoder(nn.Module):
         #     nn.Linear(compressed_dimension, compressed_dimension),
         #     nn.ReLU(),
         #     nn.Linear(compressed_dimension, compressed_dimension),
-        #     nn.ReLU(),
+        #     nn.ELU(),
         #     nn.Linear(compressed_dimension, in_channel),
         # )
 
@@ -231,7 +231,8 @@ class Wireless_Autoencoder(nn.Module):
 
         h = torch.view_as_complex(h)
 
-        return torch.view_as_real(h * x).view(-1, model_parameters['n_channel'] * 2)
+        # return torch.view_as_real(h * x).view(-1, model_parameters['n_channel'] * 2)
+        return torch.view_as_real(x / h).view(-1, model_parameters['n_channel'] * 2)
 
     def demodulate(self, x):
         with torch.no_grad():
@@ -240,10 +241,11 @@ class Wireless_Autoencoder(nn.Module):
             return preds
 
     def decoder_net(self, x):
-        if channel_parameters['channel_type'] == 'rayleigh' or channel_parameters['channel_type'] == 'rician':
-            h = self.parameter_est(x)
-            t = self.transform(x, h)
-            return self.decoder(t)
+        # if channel_parameters['channel_type'] == 'rayleigh' or channel_parameters['channel_type'] == 'rician':
+        #     # h = self.parameter_est(x)
+        #     h = torch.view_as_real(self.fading).view(-1, 2)
+        #     t = self.transform(x, h)
+        #     return self.decoder(t)
         return self.decoder(x)
 
     def load(self):

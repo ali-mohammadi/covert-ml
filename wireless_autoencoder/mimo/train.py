@@ -14,7 +14,7 @@ import sys
 from parameters import *
 from shared_parameters import system_parameters
 from model import Wireless_Autoencoder, Wireless_Decoder, device
-from helpers import jakes_flat, losses_chart, plot_constellation, plot_constellations, blers_chart
+from helpers import jakes_flat, losses_chart, plot_constellation, constellations_diagram, blers_chart
 
 
 decoder_model = None
@@ -83,8 +83,9 @@ def train(models, dls, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam, losses
                 signals = []
                 for i in range(model_parameters['n_user']):
                     signals.append(models[i].channel(encodes, h=h)[:, i, :])
-                signals = torch.stack(signals).transpose(1, 0)
-                # signals = models[0].channel(encodes, h=h)
+                signals = torch.stack(signals, dim=1)
+
+                # signals = signals.view((signals.size()[0], -1))
 
                 signals = signals.view((-1, model_parameters['n_user'], model_parameters['n_channel'], 2))
                 signals = torch.view_as_complex(signals)
@@ -213,6 +214,7 @@ def run_eval(models=None, test_ds=None, seed=model_parameters['seed']):
         test_dses.append(Data.TensorDataset(test_ds[idx][0], test_ds[idx][1]))
 
     blers_chart(models, test_dses, decoder_model)
+    # constellations_diagram(models, False)
 
 
 '''
@@ -220,6 +222,3 @@ def run_eval(models=None, test_ds=None, seed=model_parameters['seed']):
 '''
 # run_train()
 run_eval()
-
-
-# plot_constellations()
