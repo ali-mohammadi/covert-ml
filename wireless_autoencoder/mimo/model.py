@@ -32,6 +32,16 @@ class Wireless_Decoder(nn.Module):
         in_channel = model_parameters['m']
         compressed_dimension = model_parameters['n_user'] * model_parameters['n_channel'] * 2
 
+        # self.parameter_est = nn.Sequential(
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.Tanh(),
+        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
+        #     nn.Tanh(),
+        #     # nn.Linear(compressed_dimension * 2, compressed_dimension),
+        #     # nn.Tanh(),
+        #     nn.Linear(compressed_dimension * 2, int(compressed_dimension * model_parameters['n_user'] / model_parameters['n_channel'])),
+        # )
+
         self.predecoder = nn.Sequential(
             nn.Linear(compressed_dimension, compressed_dimension),
             nn.Tanh(),
@@ -45,12 +55,21 @@ class Wireless_Decoder(nn.Module):
             nn.Conv1d(model_parameters['n_channel'], model_parameters['n_channel'], 2, 1),
             nn.Tanh(),
             nn.Flatten(),
-            nn.Linear(model_parameters['n_channel'] * (model_parameters['n_user'] * model_parameters['n_channel'] - 4), compressed_dimension * 2),
+            nn.Linear(model_parameters['n_channel'] * (int(compressed_dimension / 2) - (4 if model_parameters['n_channel'] > 4 else 3)), compressed_dimension * 2),
             # nn.Linear(12, compressed_dimension * 2),
             nn.Tanh(),
             nn.Linear(compressed_dimension * 2, compressed_dimension * 2),
             nn.Tanh()
         )
+
+        # self.predecoder = nn.Sequential(
+        #     nn.Linear(compressed_dimension, compressed_dimension),
+        #     nn.Tanh(),
+        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
+        #     nn.Tanh(),
+        #     nn.Linear(compressed_dimension * 2, compressed_dimension * 2),
+        #     nn.Tanh()
+        # )
 
         self.decoder = nn.ModuleList([nn.Sequential(
                 nn.Linear(compressed_dimension * 2, compressed_dimension),
@@ -59,6 +78,14 @@ class Wireless_Decoder(nn.Module):
             ).to(device) for _ in range(model_parameters['n_user'])])
 
     def forward(self, x, i):
+        if False:
+            h = self.parameter_est(x)
+            h = h.view(-1, model_parameters['n_user'], model_parameters['n_user'], 2)
+            h = torch.view_as_complex(h)
+            x = x.view((-1, model_parameters['n_user'], model_parameters['n_channel'], 2))
+            x = torch.view_as_complex(x)
+            t = torch.inverse(h) @ x
+            x = torch.view_as_real(t).view(t.size()[0], -1)
         x = self.predecoder(x)
         return self.decoder[i](x)
 
@@ -83,6 +110,18 @@ class Wireless_Autoencoder(nn.Module):
         self.in_channel = in_channel
         self.compressed_dimension = compressed_dimension
         compressed_dimension = 2 * compressed_dimension
+
+        '''
+            Encoder with Dense layers
+        '''
+        # self.encoder = nn.Sequential(
+        #     nn.Linear(in_channel, compressed_dimension),
+        #     nn.ELU(),
+        #     nn.Linear(compressed_dimension, compressed_dimension * 2),
+        #     nn.ReLU(),
+        #     nn.Linear(compressed_dimension * 2, compressed_dimension),
+        #     nn.BatchNorm1d(compressed_dimension, affine=False)
+        # )
 
         self.encoder = nn.Sequential(
             nn.Linear(in_channel, in_channel),
@@ -186,7 +225,7 @@ class Wireless_Autoencoder(nn.Module):
         if channel == 'rayleigh':
             return self.rayleigh(x, r, ebno, h)
         if channel == 'rician':
-            return self.rician(x, r, ebno, k)
+            return self.rician(x, r, ebno, k, h)
         return x
 
     def awgn(self, x, r, ebno):
@@ -196,14 +235,23 @@ class Wireless_Autoencoder(nn.Module):
         return x + noise
 
     def rayleigh(self, x, r, ebno, h):
-        ebno = 10.0 ** (ebno / 10.0)
-        noise = torch.randn((x.size()[0], x.size()[2]), requires_grad=False) / ((2 * r * ebno) ** 0.5)
-        noise = noise.unsqueeze(1).to(device)
+        if ebno is not None:
+            ebno = 10.0 ** (ebno / 10.0)
+            noise = torch.randn((x.size()[0], x.size()[2]), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+            noise = noise.unsqueeze(1).to(device)
+        else:
+            noise = torch.zeros(*x.size(), requires_grad=False)
+            noise = noise.to(device)
 
-        n_channel = int(x.size()[2] / 2)
+        if ebno is not None:
+            n_channel = int(x.size()[2] / 2)
 
-        x = x.view((-1, model_parameters['n_user'], n_channel, 2))
-        x = torch.view_as_complex(x)
+            x = x.view((-1, model_parameters['n_user'], n_channel, 2))
+            x = torch.view_as_complex(x)
+        else:
+            n_channel = int(x.size()[1] / 2)
+            x = x.view((-1, n_channel, 2))
+            x = torch.view_as_complex(x)
 
         if h is None:
             if channel_parameters['channel_taps'] is not None:
@@ -221,11 +269,49 @@ class Wireless_Autoencoder(nn.Module):
 
                 output_signal = output_signal[:, 0:-int(channel_parameters['channel_taps'] - 1)]
             else:
-                fading_batch = torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)
+                fading_batch = torch.randn((x.size()[0], x.size()[1], x.size()[1]), dtype=torch.cfloat).to(device)
                 output_signal = x * fading_batch
         else:
-            output_signal = h @ x
-        # test = x * h
+            if ebno is not None:
+                output_signal = h @ x
+            else:
+                output_signal = h * x
+                return torch.view_as_real(output_signal).view(-1, n_channel * 2) + noise
+
+        return torch.view_as_real(output_signal).view(-1, model_parameters['n_user'],
+                                                      n_channel * 2) + noise
+
+    def rician(self, x, r, ebno, k=channel_parameters['channel_k'], h=None):
+        if ebno is not None:
+            ebno = 10.0 ** (ebno / 10.0)
+            noise = torch.randn((x.size()[0], x.size()[2]), requires_grad=False) / ((2 * r * ebno) ** 0.5)
+            noise = noise.unsqueeze(1).to(device)
+        else:
+            noise = torch.zeros(*x.size(), requires_grad=False)
+            noise = noise.to(device)
+
+        if ebno is not None:
+            n_channel = int(x.size()[2] / 2)
+
+            x = x.view((-1, model_parameters['n_user'], n_channel, 2))
+            x = torch.view_as_complex(x)
+        else:
+            n_channel = int(x.size()[1] / 2)
+            x = x.view((-1, n_channel, 2))
+            x = torch.view_as_complex(x)
+
+        if h is None:
+            std = (1 / (k + 1)) ** 0.5
+            mean = (k / 2 * (k + 1)) ** 0.5
+            fading_batch = torch.normal(mean, std, (x.size()[0], x.size()[1], x.size()[1]), dtype=torch.cfloat).to(device)
+            output_signal = x * fading_batch
+        else:
+            if ebno is not None:
+                output_signal = h @ x
+            else:
+                output_signal = h * x
+                return torch.view_as_real(output_signal).view(-1, n_channel * 2) + noise
+
         return torch.view_as_real(output_signal).view(-1, model_parameters['n_user'],
                                                       n_channel * 2) + noise
 

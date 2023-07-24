@@ -21,12 +21,16 @@ def initialize():
     AE.eval()
     with torch.no_grad():
         autoencoder_ds = torch.load(
-            '../../data/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_train.pt')
+            '../../data/' + system_parameters['system_type'] + '/' + channel_parameters[
+                'channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(
+                model_parameters['k']) + ')_train.pt')
         x = AE.encoder(autoencoder_ds[:][0])
         y = autoencoder_ds[:][1]
 
         autoencoder_tds = torch.load(
-            '../../data/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(model_parameters['k']) + ')_test.pt')
+            '../../data/' + system_parameters['system_type'] + '/' + channel_parameters[
+                'channel_type'] + '/wireless_autoencoder(' + str(model_parameters['n_channel']) + ',' + str(
+                model_parameters['k']) + ')_test.pt')
         test_x = AE.encoder(autoencoder_tds[:][0])
         test_y = autoencoder_tds[:][1]
 
@@ -52,7 +56,8 @@ def initialize():
     return (A, B, W, AE), ((x, y), (test_x, test_y), (m, test_m))
 
 
-def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning_rate=covert_parameters['learning_rate'],
+def train(models, datasets, num_epochs=covert_parameters['num_epochs'],
+          learning_rate=covert_parameters['learning_rate'],
           optim_fn=torch.optim.Adam, lambdas=(1, 1, 1)):
     A, B, W, AE = models
     train_set, test_set, m_set = datasets
@@ -93,20 +98,46 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
             covert_parameters['ebno'] = torch.randint(10, 20, (1,))
         else:
             covert_parameters['channel_k'] = None
-            covert_parameters['ebno'] = torch.randint(10, 20, (1,))
+            covert_parameters['ebno'] = torch.randint(10, 30, (1,))
         # covert_parameters['ebno'] = channel_parameters['ebno']
+
+        if channel_parameters['channel_type'] == 'rayleigh':
+            h = {'w': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device),
+                 'u': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device),
+                 'b': torch.randn((x.size()[0], 1), dtype=torch.cfloat).to(device)}
+        elif channel_parameters['channel_type'] == 'rician':
+            std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+            mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+            h = {'w': torch.normal(mean, std, (x.size()[0], 1), dtype=torch.cfloat).to(device),
+                 'u': torch.normal(mean, std, (x.size()[0], 1), dtype=torch.cfloat).to(device),
+                 'b': torch.normal(mean, std, (x.size()[0], 1), dtype=torch.cfloat).to(device)}
+        else:
+            h = {'w': None, 'u': None, 'b': None}
 
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
 
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
-        alice_output = A(z, m)
+        alice_output = A(z, m, h['b'])
 
         normal_labels = torch.ones(covert_parameters['batch_size'], 1).to(device)
         covert_labels = torch.zeros(covert_parameters['batch_size'], 1).to(device)
 
-        willie_output = W(AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        if channel_parameters['channel_type'] == 'awgn':
+            willie_output = W(AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        else:
+            willie_signal = AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'],
+                                       k=covert_parameters['channel_k'])
+            willie_output = W(AE.transform(willie_signal, AE.parameter_est(willie_signal)))
         willie_normal_loss = w_criterion(willie_output, normal_labels)
-        willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+
+        if channel_parameters['channel_type'] == 'awgn':
+            # willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+            willie_output = W(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h['w']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        else:
+            willie_signal = AE.channel(alice_output, channel_parameters['channel_type'], ebno=None,
+                                       k=covert_parameters['channel_k'], h=h['w']) + AE.channel(x, channel_parameters[
+                'channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
+            willie_output = W(AE.transform(willie_signal, AE.parameter_est(willie_signal)))
         willie_covert_loss = w_criterion(willie_output, covert_labels)
 
         willie_loss = willie_normal_loss + willie_covert_loss
@@ -115,18 +146,36 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
 
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
-        alice_output = A(z, m)
         x = x.detach()
 
-        willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
-        bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        alice_output = A(z, m, h['b'])
+        if channel_parameters['channel_type'] == 'awgn':
+            # willie_output = W(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+            willie_output = W(AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'], h=h['w']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        else:
+            willie_signal = AE.channel(alice_output, channel_parameters['channel_type'], ebno=None,
+                                       k=covert_parameters['channel_k'], h=h['w']) + AE.channel(x, channel_parameters[
+                'channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
+            willie_output = W(AE.transform(willie_signal, AE.parameter_est(willie_signal)))
+
+        # alice_output = A(z, m, h['b'])
+        # bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        bob_output = B(
+            AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'],
+                       h=h['b']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'],
+                                              k=covert_parameters['channel_k']))
 
         if covert_parameters['low_rate_multiplier'] is not None:
             alice_output = AE.channel(
                 alice_output.reshape(-1, model_parameters['n_channel'] * 2) + x.reshape(-1, model_parameters[
-                    'n_channel'] * 2), channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
+                    'n_channel'] * 2), channel_parameters['channel_type'], ebno=covert_parameters['ebno'],
+                k=covert_parameters['channel_k'])
         else:
-            alice_output = AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
+            # alice_output = A(z, m, h['u'])
+            # alice_output = AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
+            alice_output = AE.channel(alice_output, channel_parameters['channel_type'], ebno=None,
+                                      k=covert_parameters['channel_k'], h=h['u']) + AE.channel(x, channel_parameters[
+                'channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k'])
 
         alice_bob_loss = ae_lambda * ae_criterion(AE.decoder_net(alice_output),
                                                   y) + willie_lambda * w_criterion(
@@ -138,10 +187,14 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
 
         reset_grads(a_optimizer, b_optimizer, w_optimizer)
         z = torch.randn(covert_parameters['batch_size'], covert_parameters['n_channel'] * 2).to(device)
-        alice_output = A(z, m)
+        alice_output = A(z, m, h['b'])
         x = x.detach()
 
-        bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        # bob_output = B(AE.channel(alice_output + x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'], k=covert_parameters['channel_k']))
+        bob_output = B(
+            AE.channel(alice_output, channel_parameters['channel_type'], ebno=None, k=covert_parameters['channel_k'],
+                       h=h['b']) + AE.channel(x, channel_parameters['channel_type'], ebno=covert_parameters['ebno'],
+                                              k=covert_parameters['channel_k']))
         bob_loss = b_criterion(bob_output, m)
         bob_loss.backward()
         b_optimizer.step()
@@ -159,27 +212,69 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
         else:
             willie_loss, bob_loss, alice_bob_loss = train_batch(x, y, m)
 
-        if epoch != 0 and epoch % 500 == 0:
-            w_optimizer.param_groups[0]['lr'] /= 2
-            b_optimizer.param_groups[0]['lr'] /= 2
-            a_optimizer.param_groups[0]['lr'] /= 2
+        # if epoch != 0 and epoch % 500 == 0:
+        #     w_optimizer.param_groups[0]['lr'] /= 2
+        #     b_optimizer.param_groups[0]['lr'] /= 2
+        #     a_optimizer.param_groups[0]['lr'] /= 2
 
-        if epoch % 100 == 0:
+        if epoch != 0 and epoch % 2500 == 0:
+            w_optimizer.param_groups[0]['lr'] /= 10
+            b_optimizer.param_groups[0]['lr'] /= 10
+            a_optimizer.param_groups[0]['lr'] /= 10
+
+        if epoch % 10 == 0:
             with torch.no_grad():
                 test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
+
+                if channel_parameters['channel_type'] == 'rayleigh':
+                    # h = {'w': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device), 'u': None, 'b': None}
+                    # h['u'] = h['w']
+                    # h['b'] = h['w']
+
+                    h = {'w': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+                         'u': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+                         'b': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+                elif channel_parameters['channel_type'] == 'rician':
+                    std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+                    mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+                    h = {'w': torch.normal(mean, std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+                         'u': torch.normal(mean, std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+                         'b': torch.normal(mean, std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+                else:
+                    h = {'w': None, 'u': None, 'b': None}
 
                 A.eval()
                 B.eval()
                 W.eval()
 
-                alice_output_test = A(test_z, test_m)
+                alice_output_test = A(test_z, test_m, h['b'])
 
-                willie_acc = discriminator_accuracy(
-                    W(AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])),
-                    W(AE.channel(test_x, channel_parameters['channel_type'])))
+                if channel_parameters['channel_type'] == 'awgn':
+                    # willie_acc = discriminator_accuracy(
+                    #     W(AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])),
+                    #     W(AE.channel(test_x, channel_parameters['channel_type'])))
+                    #
+                    willie_acc = discriminator_accuracy(
+                        W(AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None, h=h['w']) + AE.channel(test_x, channel_parameters['channel_type'])),
+                        W(AE.channel(test_x, channel_parameters['channel_type'])))
+                else:
+                    willie_signal_covert = AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None,
+                                                      h=h['w']) + AE.channel(test_x, channel_parameters['channel_type'])
+                    willie_signal_covert_output = W(
+                        AE.transform(willie_signal_covert, AE.parameter_est(willie_signal_covert)))
 
+                    willie_signal_normal = AE.channel(test_x, channel_parameters['channel_type'])
+                    willie_signal_normal_output = W(
+                        AE.transform(willie_signal_normal, AE.parameter_est(willie_signal_normal)))
+                    willie_acc = discriminator_accuracy(willie_signal_covert_output, willie_signal_normal_output)
+
+                # bob_acc = classifier_accuracy(
+                #     B(AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])),
+                #     test_m)
+                alice_output_test = A(test_z, test_m, h['b'])
                 bob_acc = classifier_accuracy(
-                    B(AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])),
+                    B(AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None,
+                                 h=h['b']) + AE.channel(test_x, channel_parameters['channel_type'])),
                     test_m)
 
                 accs['willie'].append(round(willie_acc, 2))
@@ -188,11 +283,14 @@ def train(models, datasets, num_epochs=covert_parameters['num_epochs'], learning
                 if covert_parameters['low_rate_multiplier'] is not None:
                     alice_output_test = AE.channel(
                         alice_output_test.reshape(-1, model_parameters['n_channel'] * 2) + test_x.reshape(-1,
-                                                                                                            model_parameters[
-                                                                                                                'n_channel'] * 2),
+                                                                                                          model_parameters[
+                                                                                                              'n_channel'] * 2),
                         channel_parameters['channel_type'])
                 else:
-                    alice_output_test = AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])
+                    alice_output_test = A(test_z, test_m, h['b'])
+                    # alice_output_test = AE.channel(alice_output_test + test_x, channel_parameters['channel_type'])
+                    alice_output_test = AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None,
+                                                   h=h['u']) + AE.channel(test_x, channel_parameters['channel_type'])
                 # alice_output_test = AE.channel(test_x, channel_parameters['channel_type'])
                 model_acc = classifier_accuracy(AE.decoder_net(alice_output_test), test_y)
 
@@ -216,17 +314,23 @@ def run_train(seed=covert_parameters['seed'], save=True):
     models, datasets = initialize()
     A, B, E, AE = models
 
-    if channel_parameters['channel_type'] == "awgn":
-        ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.1, 0.8
+    if channel_parameters['channel_type'] == 'rayleigh':
+        ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.4, 0.4
     else:
-        ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.2, 0.6
+        ae_lambda, bob_lambda, willie_lambda = 0.4, covert_parameters['m'] * 0.1, 0.8
 
     accs, losses = train(models, datasets, lambdas=(ae_lambda, bob_lambda, willie_lambda))
 
     if save:
-        torch.save(A.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
-        torch.save(B.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
-        torch.save(E.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt')
+        torch.save(A.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters[
+            'channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(
+            covert_parameters['k']) + ').pt')
+        torch.save(B.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters[
+            'channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(
+            covert_parameters['k']) + ').pt')
+        torch.save(E.state_dict(), '../../models/' + system_parameters['system_type'] + '/' + channel_parameters[
+            'channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(
+            covert_parameters['k']) + ').pt')
 
     accuracies_chart(accs)
 
@@ -241,25 +345,68 @@ def evaluate(ebno):
     test_x, test_y = test_ds
     m, test_m = m_ds
 
-    A.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
-    B.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
-    W.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
+    A.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters[
+        'channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(
+        covert_parameters['k']) + ').pt'))
+    B.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters[
+        'channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(
+        covert_parameters['k']) + ').pt'))
+    W.load_state_dict(torch.load('../../models/' + system_parameters['system_type'] + '/' + channel_parameters[
+        'channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(
+        covert_parameters['k']) + ').pt'))
+
+    if channel_parameters['channel_type'] == 'rayleigh':
+        h = {'w': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+             'u': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+             'b': torch.randn((test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+    elif channel_parameters['channel_type'] == 'rician':
+        std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+        mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+        h = {'w': torch.normal(mean, std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+             'u': torch.normal(mean, std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device),
+             'b': torch.normal(mean, std, (test_x.size()[0], 1), dtype=torch.cfloat).to(device)}
+    else:
+        h = {'w': None, 'u': None, 'b': None}
 
     test_z = torch.randn(len(test_x), covert_parameters['n_channel'] * 2).to(device)
 
-    willie_acc = discriminator_accuracy(W(AE.channel(A(test_z, test_m) + test_x, channel_parameters['channel_type'], ebno=ebno)),
-                                 W(AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)))
+    if channel_parameters['channel_type'] == 'awgn':
+        # willie_acc = discriminator_accuracy(W(AE.channel(A(test_z, test_m) + test_x, channel_parameters['channel_type'], ebno=ebno)),
+        #                              W(AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)))
+        willie_acc = discriminator_accuracy(
+            W(AE.channel(A(test_z, test_m, h['w']), channel_parameters['channel_type'], ebno=None, h=h['w']) + AE.channel(test_x,
+                                                                                                        channel_parameters[
+                                                                                                            'channel_type'],
+                                                                                                        ebno=ebno)),
+            W(AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)))
+    else:
+        willie_covert_signal = AE.channel(A(test_z, test_m, h['w']), channel_parameters['channel_type'], ebno=None,
+                                          h=h['w']) + AE.channel(test_x,
+                                                                 channel_parameters[
+                                                                     'channel_type'],
+                                                                 ebno=ebno)
+        willie_covert_output = W(AE.transform(willie_covert_signal, AE.parameter_est(willie_covert_signal)))
+    
+        willie_normal_signal = AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)
+        willie_normal_output = W(AE.transform(willie_normal_signal, AE.parameter_est(willie_normal_signal)))
+        willie_acc = discriminator_accuracy(willie_covert_output, willie_normal_output)
 
-    bob_acc = classifier_accuracy(B(AE.channel(A(test_z, test_m) + test_x, channel_parameters['channel_type'], ebno=ebno)),
-                           test_m)
+    # bob_acc = classifier_accuracy(B(AE.channel(A(test_z, test_m) + test_x, channel_parameters['channel_type'], ebno=ebno)),
+    #                        test_m)
+    bob_acc = classifier_accuracy(
+        B(AE.channel(A(test_z, test_m, h['b']), channel_parameters['channel_type'], ebno=None, h=h['b']) + AE.channel(
+            test_x, channel_parameters['channel_type'], ebno=ebno)),
+        test_m)
 
-    alice_output_test = A(test_z, test_m)
+    alice_output_test = A(test_z, test_m, h['u'])
     if covert_parameters['low_rate_multiplier'] is not None:
         covert_signal_test = AE.channel(
             alice_output_test.reshape(-1, model_parameters['n_channel'] * 2) + test_x.reshape(-1, model_parameters[
                 'n_channel'] * 2), channel_parameters['channel_type'], ebno=ebno)
     else:
-        covert_signal_test = AE.channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno)
+        # covert_signal_test = AE.channel(alice_output_test + test_x, channel_parameters['channel_type'], ebno=ebno)
+        covert_signal_test = AE.channel(alice_output_test, channel_parameters['channel_type'], ebno=None,
+                                        h=h['u']) + AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)
 
     # normal_signal_test = AE.channel(test_x, channel_parameters['channel_type'], ebno=ebno)
     # ae_acc = classifier_accuracy(AE.decoder_net(normal_signal_test), test_y)
@@ -280,7 +427,9 @@ def run_eval(seed=covert_parameters['seed']):
     accs = {'autoencoder': [], 'autoencoder_covert': [], 'bob': [], 'willie': []}
 
     if channel_parameters['channel_type'] == 'awgn':
-        accs['autoencoder'] = [0.39609375, 0.32046875, 0.2424609375, 0.17330078125, 0.1169921875, 0.0701953125, 0.03802734375, 0.0185546875, 0.00767578125, 0.00265625, 0.00078125, 0.0001953125, 3.90625e-05]
+        accs['autoencoder'] = [0.39609375, 0.32046875, 0.2424609375, 0.17330078125, 0.1169921875, 0.0701953125,
+                               0.03802734375, 0.0185546875, 0.00767578125, 0.00265625, 0.00078125, 0.0001953125,
+                               3.90625e-05]
     elif channel_parameters['channel_type'] == 'rician':
         if channel_parameters['channel_k'] == 1:
             accs['autoencoder'] = [0.18876953125, 0.04037109375, 0.00693359375, 0.00193359375, 0.0005078125]
@@ -299,7 +448,9 @@ def run_eval(seed=covert_parameters['seed']):
         accs['bob'].append(1 - bob_acc)
         accs['willie'].append(round(willie_acc, 2))
 
-    with open('results/txt/accuracies(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k'])  + ')_' + channel_parameters['channel_type'] + '.txt', 'w') as f:
+    with open(
+            'results/txt/accuracies(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ')_' +
+            channel_parameters['channel_type'] + '.txt', 'w') as f:
         for key, item in accs.items():
             f.write("%s:%s\n" % (key, item))
 
@@ -333,7 +484,6 @@ def run_eval(seed=covert_parameters['seed']):
             plot_y = accs[x]
             plot_fmt = '--bD'
 
-
         plt.plot(plot_x, plot_y, plot_fmt,
                  label=plot_label)
 
@@ -358,6 +508,7 @@ def run_eval(seed=covert_parameters['seed']):
         plt.tight_layout()
         plt.show()
 
+
 def eval_rate_change():
     rates = [1, 2, 4]
     accs = {'autoencoder': [], 'autoencoder_covert': [], 'bob': [], 'willie': []}
@@ -365,7 +516,7 @@ def eval_rate_change():
     chart_conf = {
         'autoencoder': {
             'c': ['black'],
-            'l':  [(0, (5, 7))],
+            'l': [(0, (5, 7))],
             'm': [None]
         },
         'autoencoder_covert': {
@@ -393,7 +544,8 @@ def eval_rate_change():
         ebno_range = list(frange(0, 22, 5))
 
     for rate in rates:
-        f = open('results/txt/accuracies(' + str(covert_parameters['n_channel']) + ',' + str(rate) + ')_' + channel_parameters['channel_type'] + '.txt')
+        f = open('results/txt/accuracies(' + str(covert_parameters['n_channel']) + ',' + str(rate) + ')_' +
+                 channel_parameters['channel_type'] + '.txt')
         for line in f.readlines():
             acc = line.split(':')
             if acc[0] == 'autoencoder':
@@ -419,7 +571,8 @@ def eval_rate_change():
                 plot_y = accs[x][i]
             elif x == 'autoencoder_covert':
                 plot_label = "User (" + str(model_parameters['n_channel']) + "," + str(
-                    model_parameters['k']) + ") — Alice (" + str(model_parameters['n_channel']) + "," + str(rates[i]) + ")"
+                    model_parameters['k']) + ") — Alice (" + str(model_parameters['n_channel']) + "," + str(
+                    rates[i]) + ")"
                 plot_x = list(ebno_range)
                 plot_y = accs[x][i]
             elif x == 'autoencoder':
@@ -428,8 +581,9 @@ def eval_rate_change():
                 plot_x = list(ebno_range)
                 plot_y = accs[x]
 
-            plt.plot(plot_x, plot_y, linestyle=chart_conf[x]['l'][i], marker=chart_conf[x]['m'][i], color=chart_conf[x]['c'][i],
-                             label=plot_label, clip_on=False)
+            plt.plot(plot_x, plot_y, linestyle=chart_conf[x]['l'][i], marker=chart_conf[x]['m'][i],
+                     color=chart_conf[x]['c'][i],
+                     label=plot_label, clip_on=False)
 
             if x == 'autoencoder':
                 break
@@ -454,7 +608,6 @@ def eval_rate_change():
                 plt.yticks(fontsize=18)
                 plt.tight_layout()
 
-
                 if x == 'autoencoder_covert':
                     plt.savefig("results/png/covert_autoencoder_bler_" + channel_parameters['channel_type'] + ".png")
                     plt.savefig("results/eps/covert_autoencoder_bler_" + channel_parameters['channel_type'] + ".eps",
@@ -475,15 +628,19 @@ def eval_rate_change():
                         channel_parameters['channel_type'] + ".eps", format="eps")
 
                 plt.show()
-        
+
+
 def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save=True):
     models, _ = initialize()
 
     A, B, W, AE = models
 
-    A.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
-    B.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
-    W.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
+    A.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_alice(' + str(
+        covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
+    B.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_bob(' + str(
+        covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
+    W.load_state_dict(torch.load('../models/' + channel_parameters['channel_type'] + '/wireless_covert_willie(' + str(
+        covert_parameters['n_channel']) + ',' + str(covert_parameters['k']) + ').pt'))
 
     A.eval(), B.eval(), W.eval(), AE.eval()
 
@@ -500,7 +657,8 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
 
             encoder_signal = [test_x[0]]
             random_state = torch.random.get_rng_state()
-            covert_signal = AE.channel(test_x + A(test_z, test_m), channel=channel_parameters['channel_type'], ebno=ebno)
+            covert_signal = AE.channel(test_x + A(test_z, test_m), channel=channel_parameters['channel_type'],
+                                       ebno=ebno)
             plt = plot_constellation([(covert_signal, 'x', 'tab:red', 2), (encoder_signal, 'o', 'k', 30)])
             plt.xlabel("In-phase", fontsize=18)
             plt.ylabel('Quadrature', fontsize=18)
@@ -508,8 +666,9 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
             plt.yticks(fontsize=16)
             plt.tight_layout()
             if save:
-                plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.eps',
-                            format='eps')
+                plt.savefig(
+                    'results/eps/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.eps',
+                    format='eps')
                 plt.savefig(
                     'results/png/constellation/' + channel_parameters['channel_type'] + '_covert_' + str(i) + '.png',
                     format='png')
@@ -526,8 +685,9 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
             plt.yticks(fontsize=16)
             plt.tight_layout()
             if save:
-                plt.savefig('results/eps/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.eps',
-                            format='eps')
+                plt.savefig(
+                    'results/eps/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.eps',
+                    format='eps')
                 plt.savefig(
                     'results/png/constellation/' + channel_parameters['channel_type'] + '_normal_' + str(i) + '.png',
                     format='png')
@@ -536,6 +696,7 @@ def eval_constellation(ebno=channel_parameters['ebno'], points=500, s=None, save
             plt.close()
         if s is not None:
             break
+
 
 '''
     Run training or evaluation

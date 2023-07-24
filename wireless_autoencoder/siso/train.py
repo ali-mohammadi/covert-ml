@@ -15,7 +15,7 @@ from scipy.interpolate import interp1d
 
 from parameters import *
 from model import Wireless_Autoencoder, device
-from helpers import jakes_flat, bler_chart, losses_chart, plot_constellation
+from helpers import jakes_flat, bler_chart, losses_chart, constellation_diagram
 
 def train(model, dl, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam):
     # for p in model.reverse_filter.parameters(): p.requires_grad = False
@@ -94,10 +94,16 @@ def eval_parameters():
     else:
         ebno_range = list(range(-4, 9, 1))
     parameters = ['4,2', '6,3', '8,4']
+    parameters = ['Without Equalization', 'Blind Equalization', 'Zero-Forcing Equalization']
 
     colors = {'4,2': '--bH', '6,3': '--rH', '8,4': '-ko'}
+    colors = {'Without Equalization': '-ko', 'Blind Equalization': '--rH', 'Zero-Forcing Equalization': '--bH'}
 
-
+    blers = {
+        'Without Equalization': [0.5816015625, 0.2822265625, 0.10126953125, 0.03333984375, 0.01169921875],
+        'Blind Equalization': [0.46642578125, 0.21173828125, 0.07673828125, 0.0253515625, 0.008125],
+        'Zero-Forcing Equalization': [0.2687890625, 0.1067578125, 0.0386328125, 0.012890625, 0.0034765625]
+    }
     for parameter in parameters:
         if channel_parameters['channel_type'] == 'awgn':
             if parameter == '4,2':
@@ -121,20 +127,27 @@ def eval_parameters():
             if parameter == '8,4':
                 bler = [0.18876953125, 0.04037109375, 0.00693359375, 0.00193359375, 0.0005078125]
 
-        plt.plot(ebno_range, bler, colors[parameter], clip_on=False,
-                 label="Autoencoder (" + parameter + ")")
+        # plt.plot(ebno_range, bler, colors[parameter], clip_on=False,
+        #          label="Autoencoder (" + parameter + ")")
+        plt.plot(ebno_range, blers[parameter], colors[parameter], clip_on=False,
+                 label=parameter)
 
     plt.yscale('log')
     plt.xlabel("$E_{b}/N_{0}$ (dB)", fontsize=16)
     plt.ylabel('Block Error Rate', fontsize=16)
     plt.xticks(fontsize=18)
     plt.yticks(fontsize=18)
+    plt.xlim(0, 20)
     plt.grid()
-    plt.legend(loc="lower left", ncol=1, fontsize=18)
+    plt.legend(loc="lower left", ncol=1, fontsize=16)
     plt.tight_layout()
-    plt.savefig("results/png/autoencoder_bler_" + channel_parameters['channel_type'] + "_parameters.png")
-    plt.savefig("results/eps/autoencoder_bler_" + channel_parameters['channel_type'] + "_parameters.eps", format="eps")
-    plt.savefig("results/svg/autoencoder_bler_" + channel_parameters['channel_type'] + "_parameters.svg", format="svg")
+    # plt.savefig("results/png/autoencoder_bler_" + channel_parameters['channel_type'] + "_parameters.png")
+    # plt.savefig("results/eps/autoencoder_bler_" + channel_parameters['channel_type'] + "_parameters.eps", format="eps")
+    # plt.savefig("results/svg/autoencoder_bler_" + channel_parameters['channel_type'] + "_parameters.svg", format="svg")
+
+    plt.savefig("results/png/autoencoder_bler_" + channel_parameters['channel_type'] + "_equalization.png")
+    plt.savefig("results/eps/autoencoder_bler_" + channel_parameters['channel_type'] + "_equalization.eps", format="eps")
+    plt.savefig("results/svg/autoencoder_bler_" + channel_parameters['channel_type'] + "_equalization.svg", format="svg")
     plt.show()
 
 '''
@@ -143,4 +156,12 @@ def eval_parameters():
 run_train(save=False)
 # run_eval()
 # eval_parameters()
+
+# constellation_diagram(Wireless_Autoencoder())
+# bers = [
+#     [0.5816015625, 0.2822265625, 0.10126953125, 0.03333984375, 0.01169921875],
+#     [0.46642578125, 0.21173828125, 0.07673828125, 0.0253515625, 0.008125],
+#     [0.2687890625, 0.1067578125, 0.0386328125, 0.012890625, 0.0034765625]
+#
+# ]
 

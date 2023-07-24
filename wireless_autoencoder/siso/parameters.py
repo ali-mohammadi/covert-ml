@@ -25,10 +25,10 @@ if channel_parameters['channel_type'] == 'rayleigh':
         'k': 4,
         'train_size': 1024 * 8,
         'test_size': 1024 * 50,
-        'batch_size': 1024,
+        'batch_size': 64,
         'num_epochs': 100,
         'learning_rate': 1e-3,
-        'seed': 2,
+        'seed': 0,
         'device': 'auto'
     }
 

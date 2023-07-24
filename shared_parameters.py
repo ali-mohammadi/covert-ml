@@ -24,7 +24,7 @@ if 'wireless_autoencoder' in os.getcwd():
     if channel_parameters['channel_type'] == 'rayleigh':
         channel_parameters['ebno'] = 16
     if channel_parameters['channel_type'] == 'rician':
-        channel_parameters['ebno'] = 16
+        channel_parameters['ebno'] = 14 if system_parameters['system_type'] == 'mimo' else 16
 
 if 'wireless_covert' in os.getcwd():
     '''
@@ -35,4 +35,4 @@ if 'wireless_covert' in os.getcwd():
     if channel_parameters['channel_type'] == 'rayleigh':
         channel_parameters['ebno'] = 15
     if channel_parameters['channel_type'] == 'rician':
-        channel_parameters['ebno'] = 15
+        channel_parameters['ebno'] = 12 if system_parameters['system_type'] == 'mimo' else 15

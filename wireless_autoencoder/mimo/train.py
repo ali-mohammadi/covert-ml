@@ -14,7 +14,7 @@ import sys
 from parameters import *
 from shared_parameters import system_parameters
 from model import Wireless_Autoencoder, Wireless_Decoder, device
-from helpers import jakes_flat, losses_chart, plot_constellation, plot_constellations, blers_chart
+from helpers import jakes_flat, losses_chart, plot_constellation, constellations_diagram, blers_chart
 
 
 decoder_model = None
@@ -73,11 +73,19 @@ def train(models, dls, num_epoch, lr, loss_fn, optim_fn=torch.optim.Adam, losses
                 encodes = torch.stack(encodes)
                 encodes.transpose_(0, 1)
 
-                h = torch.randn((x.size()[0], model_parameters['n_user'], model_parameters['n_user']), dtype=torch.cfloat).to(device)
+                if channel_parameters['channel_type'] == 'rayleigh':
+                    h = torch.randn((x.size()[0], model_parameters['n_user'], model_parameters['n_user']), dtype=torch.cfloat).to(device)
+                if channel_parameters['channel_type'] == 'rician':
+                    std = (1 / (channel_parameters['channel_k'] + 1)) ** 0.5
+                    mean = (channel_parameters['channel_k'] / 2 * (channel_parameters['channel_k'] + 1)) ** 0.5
+                    h = torch.normal(mean, std, (x.size()[0], model_parameters['n_user'], model_parameters['n_user']), dtype=torch.cfloat).to(device)
+
                 signals = []
                 for i in range(model_parameters['n_user']):
                     signals.append(models[i].channel(encodes, h=h)[:, i, :])
-                signals = torch.stack(signals).transpose(1, 0)
+                signals = torch.stack(signals, dim=1)
+
+                # signals = signals.view((signals.size()[0], -1))
 
                 signals = signals.view((-1, model_parameters['n_user'], model_parameters['n_channel'], 2))
                 signals = torch.view_as_complex(signals)
@@ -157,8 +165,8 @@ def run_train(seed=model_parameters['seed'], save=True):
                                decoder_model=decoder_model)
 
 
-    losses_chart(losses)
-    losses_chart(losses_ind, True)
+    # losses_chart(losses)
+    # losses_chart(losses_ind, True)
 
     if save:
         decoder_model.save()
@@ -206,13 +214,11 @@ def run_eval(models=None, test_ds=None, seed=model_parameters['seed']):
         test_dses.append(Data.TensorDataset(test_ds[idx][0], test_ds[idx][1]))
 
     blers_chart(models, test_dses, decoder_model)
+    # constellations_diagram(models, False)
 
 
 '''
     Run training or evaluation
 '''
-# run_train(save=False)
+# run_train()
 run_eval()
-
-
-# plot_constellations()
