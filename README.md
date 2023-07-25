@@ -24,7 +24,9 @@ are indistinguishable from normal signals, enabling covert communication in auto
 To run this project locally, follow these installation steps:
 
 1. Clone this repository to your local machine.
-   git clone https://github.com/your-username/covert-communication-thesis.git
+```bash
+git clone https://github.com/ali-mohammadi/covert-ml.git
+```
 2. Install the required Python packages and dependencies
 
 ## Usage
@@ -101,6 +103,9 @@ Rayleigh, and Rician fading. We varied covert rates and the number of system use
 analyze the model’s robustness. Additionally, we investigated the impact of our covert
 signals on the ongoing normal system and confirmed that our covert scheme causes minimal
 disruption to the system.
+
+## Published Papers
+[Covert Communication in Autoencoder Wireless Systems](https://arxiv.org/abs/2307.08195) (Ali Mohammadi Teshnizi, Majid Ghaderi, Dennis Goeckel)
 
 ## Contact Information
 
